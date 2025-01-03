@@ -5,6 +5,7 @@ import CardTitle from '../Components/ui/CardTitle';
 import CardContent from '../Components/ui/CardContent';
  import Alert from '../Components/ui/Alert'; 
 import AlertDescription from '../Components/ui/AlertDescription';
+import axios from "axios";
 import { Plus, Minus, Save, Image as ImageIcon, Loader2, X } from 'lucide-react';
 
 const BookUpload = () => {
@@ -91,42 +92,87 @@ const BookUpload = () => {
     });
   };
 
+
+
   const handleImageChange = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
+  
     if (!file.type.startsWith('image/')) {
       setError('Please upload a valid image file');
       return;
     }
-
+  
     if (file.size > 5 * 1024 * 1024) {
       setError('Cover image size must be less than 5MB');
       return;
     }
-
+  
     try {
       setLoading(true);
+      const timestamp = Math.round(new Date().getTime() / 1000);
       const formData = new FormData();
+      
+      // Essential Cloudinary parameters
       formData.append('file', file);
-      formData.append('upload_preset', 'ml_default');
-
-      const response = await fetch(`https://api.cloudinary.com/v1_1/dlhu0vkqm/image/upload`, {
-        method: 'POST',
-        body: formData,
+      formData.append('upload_preset', 'hb-library');
+      formData.append('cloud_name', 'dlhu0vkqm');
+      formData.append('folder', 'book-covers');
+      formData.append('timestamp', timestamp);
+  
+      // Log the form data for debugging
+      console.log('Upload parameters:', {
+        file: file.name,
+        fileType: file.type,
+        fileSize: file.size,
+        uploadPreset: 'hb-library',
+        cloudName: 'dlhu0vkqm',
+        folder: 'book-covers',
+        timestamp
       });
-
-      const data = await response.json();
-
-      setImagePreview(data.secure_url);
-      setFormData(prev => ({
-        ...prev,
-        coverImage: data.secure_url,
-      }));
-      setError(null);
+  
+      const response = await axios.post(
+        'https://api.cloudinary.com/v1_1/dlhu0vkqm/image/upload',
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+          onUploadProgress: (progressEvent) => {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log('Upload progress:', percentCompleted);
+          },
+        }
+      );
+  
+      if (response.data && response.data.secure_url) {
+        setImagePreview(response.data.secure_url);
+        setFormData(prev => ({
+          ...prev,
+          coverImage: response.data.secure_url,
+        }));
+        setError(null);
+      } else {
+        throw new Error('Invalid response from Cloudinary');
+      }
     } catch (error) {
-      setError('Failed to upload image');
-      console.error('Upload error:', error);
+      // Enhanced error logging
+      console.error('Upload error details:', {
+        response: error.response?.data,
+        status: error.response?.status,
+        statusText: error.response?.statusText,
+        message: error.message
+      });
+      
+      if (error.response?.data?.error) {
+        // Log the specific error message from Cloudinary
+        console.error('Cloudinary error:', error.response.data.error);
+        setError(`Upload failed: ${error.response.data.error.message}`);
+      } else if (error.response?.status === 400) {
+        setError('Invalid upload parameters. Please check the file and try again.');
+      } else {
+        setError('Failed to upload image. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -141,51 +187,83 @@ const BookUpload = () => {
     setImagePreview(null);
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccess(false);
-
+ // 1. First, let's modify your handleSubmit to properly set the headers
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setLoading(true);
+  setError(null);
+  setSuccess(false);
+  
+  try {
+    // Validate required fields
+    if (!formData.title || !formData.author || !formData.isbn) {
+      setError('Please fill in all required fields');
+      return;
+    }
+    
     // Validate chapters
     if (formData.chapters.some(chapter => !chapter.title || !chapter.content)) {
       setError('All chapters must have both title and content');
-      setLoading(false);
       return;
     }
 
     const submitData = new FormData();
+    
     // Add all non-chapter data
     Object.keys(formData).forEach(key => {
-      if (key !== 'chapters' && formData[key] !== null) {
+      if (key !== 'chapters') {
+        if (key === 'coverImage' && formData[key] === null) {
+          return;
+        }
         submitData.append(key, formData[key]);
       }
     });
+    
     // Add chapters as JSON string
     submitData.append('chapters', JSON.stringify(formData.chapters));
-
-    try {
-      const response = await fetch('/api/upload-book', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        },
-        body: submitData
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || 'Failed to upload book');
-      }
-
-      setSuccess(true);
-      resetForm();
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+    
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication token not found. Please log in again.');
     }
-  };
+
+    // Debug log to check token
+    console.log('Token being sent:', token);
+
+    const response = await fetch('http://localhost:5000/api/upload-book', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        // Don't set Content-Type when using FormData
+      },
+      body: submitData,
+      credentials: 'include' // Add this to include cookies
+    });
+
+    // Debug log for response
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers));
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      throw new Error(`Server error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!response.ok) {
+      throw new Error(data.message || 'Failed to upload book');
+    }
+
+    setSuccess(true);
+    resetForm();
+    
+  } catch (err) {
+    console.error('Submit error:', err);
+    setError(err.message || 'An error occurred while uploading the book');
+  } finally {
+    setLoading(false);
+  }
+};
 
   const resetForm = () => {
     setFormData({
@@ -203,6 +281,9 @@ const BookUpload = () => {
     setImagePreview(null);
   };
 
+  
+  
+  
   return (
     <Card className="w-full max-w-4xl mx-auto">
       <CardHeader className="flex items-center justify-between gap-2 ">

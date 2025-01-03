@@ -1,7 +1,8 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import BookLibrary from './Components/BookLibraryDashboard';
+import DashBoard from './Components/BookLibraryDashboard';
+import BookLibrary from './Components/BookLibrary';
 import ProfileCustomization from './Components/ProfileCustomization';
 import ReadingGoals from './Components/PersonalReadingGoals';
 import AuthSystem from './Components/Authentication';
@@ -62,7 +63,7 @@ function App() {
         {/* Protected Routes */}
         <Route
           path="/"
-          element={isAuthenticated ? <BookLibrary /> : <Navigate to="/auth" />}
+          element={isAuthenticated ? <DashBoard /> : <Navigate to="/auth" />}
         />
         <Route
           path="/profile"
@@ -96,7 +97,10 @@ function App() {
        path="/book-reader"
        element={isAuthenticated ? <BookReader/> : <Navigate to="/auth" />}
        />
-
+   <Route
+       path="/book-library"
+       element={isAuthenticated ? <BookLibrary/> : <Navigate to="/auth" />}
+       />
         {/* Public Route */}
         <Route path="/auth" element={<AuthSystem />} />
       </Routes>

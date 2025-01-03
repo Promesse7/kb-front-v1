@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { BookOpen, Library, ListPlus, FolderPlus, BookMarked, Edit, Trash2, Plus, Check, Star } from 'lucide-react';
+import { BookOpen, Library, ListPlus, FolderPlus, BookMarked, Edit, Trash2, Plus, Check, Star,Camera } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 // Personal Bookshelf Component
 const PersonalBookshelf = () => {
@@ -299,9 +300,65 @@ const ReadingStatus = () => {
 const BookManagement = () => {
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
+      <div className="bg-blue-500 pt-10 pb-24 pl-10 pr-10 rounded-3xl shadow-lg relative h-full ">
+          <div className="container mx-auto px-4 flex items-center justify-between">
+            <div className="flex items-center">
+            <div className="relative">
+  <div className="w-20 h-20 rounded-full bg-white flex items-center justify-center overflow-hidden">
+    <img 
+      src="/api/placeholder/120/180" 
+      alt="Avatar" 
+      className="w-full h-full object-cover" 
+    />  
+
+  </div>
+  <input 
+    type="file" 
+    id="avatarUpload" 
+    style={{ display: "none" }} 
+    
+    accept="image/*" 
+  />
+  <button 
+    className="absolute bottom-0 right-0 bg-blue-500 rounded-full p-1" 
+    onClick={() => document.getElementById("avatarUpload").click()}
+  >
+    <Camera className="w-4 h-4 text-white" />
+  </button>
+</div>
+
+              <div className="ml-4">
+                <h1 className="text-2xl font-bold text-white">James Doe</h1>
+              <p className="text-green-200">Member since 2023</p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+  <Link
+    to="/bookshelf"
+    className="group flex items-center gap-2 bg-gradient-to-r from-blue-600 to-blue-600 p-3 rounded-lg hover:shadow-md transition-all duration-300"
+  >
+    {/* Icon Container */}
+    <div className="flex items-center justify-center bg-white p-2 rounded-full group-hover:scale-105 transition-transform duration-300">
+      <BookOpen className="w-6 h-6 text-blue-600" />
+    </div>
+    {/* Text */}
+    <h3 className="text-white font-semibold text-sm ">Bookshelf</h3>
+  </Link>
+</div>
+
+
+          </div>
+              </div>
+        <div className='container mx-auto px-4 translate-y-[-7%]'>
+          <div className='bg-white rounded-lg shadow-md p-6 mb-6'>
       <PersonalBookshelf />
       <CustomCollections />
       <ReadingStatus />
+          </div>
+           
+        </div>
+    
     </div>
   );
 };

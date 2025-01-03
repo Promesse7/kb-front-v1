@@ -11,7 +11,7 @@ import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import avatarDefault from '../Images/user-icon.png';
 
-const BookLibrary = () => {
+const DashBoard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -102,7 +102,6 @@ const BookLibrary = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-         <ToastContainer />
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-800"></div>
       </div>
     );
@@ -141,8 +140,8 @@ const BookLibrary = () => {
   return (
     
     <div className="flex flex-col lg:flex-row min-h-screen bg-stone-100">
-
-<div className="flex flex-col lg:flex-row min-h-screen bg-stone-100">
+         <ToastContainer />
+    <div className="flex flex-col lg:flex-row min-h-screen bg-stone-100">
 
           {/* Sidebar */}
       <aside className={`w-full lg:w-64 bg-white p-6 space-y-6 ${isSidebarOpen ? 'block' : 'hidden'} lg:block`}>
@@ -211,7 +210,7 @@ const BookLibrary = () => {
             Help
           </div>
 
-          <div className="flex items-center gap-3 text-gray-600" onClick={handleLogout}>
+          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-500" onClick={handleLogout}>
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center" >
               <LogOutIcon />
             </div>
@@ -298,4 +297,4 @@ const BookLibrary = () => {
   );
 };
 
-export default BookLibrary;
+export default DashBoard;
