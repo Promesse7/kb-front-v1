@@ -13,10 +13,14 @@ import ReadingHistory from './Components/ReadingHistory';
 import BookUpload from './Components/BookUpload';
 import BookReader from './Components/BookReader';
 
-// Mock function to simulate checking user authentication status from the backend
+const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
+
 const checkAuthStatus = async () => {
   try {
-    const response = await fetch('http://localhost:5000/api/auth/check-status', {
+    const response = await fetch(`${backendUrl}/api/auth/check-status`, {
       method: 'GET',
       credentials: 'include', // Include credentials
       headers: {

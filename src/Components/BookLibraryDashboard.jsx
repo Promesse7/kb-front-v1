@@ -3,13 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import { Search, Settings, HomeIcon, LibraryIcon, BellIcon,
-  DownloadCloudIcon, HeartIcon, PlusIcon, ArrowRightIcon,
+   HeartIcon, PlusIcon, ArrowRightIcon,
   HelpCircleIcon, LogOutIcon, ArrowLeftIcon, MenuIcon, XIcon,
-  BookOpenIcon, PenTool, DollarSign, Briefcase, Target } from 'lucide-react';
+  BookOpenIcon, PenTool, DollarSign, Briefcase, Target, 
+  UploadCloudIcon} from 'lucide-react';
 import logo from '../Images/Hb_logo.png';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import avatarDefault from '../Images/user-icon.png';
+const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
 
 const DashBoard = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -19,7 +24,31 @@ const DashBoard = () => {
   const navigate = useNavigate();
   const [avatar, setAvatar] = useState(avatarDefault);
   const [profile, setProfile] = useState(null);
+  const [books, setBooks] = useState([]);
 
+
+  useEffect(() => {
+    const fetchBooks = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+          throw new Error('Authentication token not found. Please log in again.');
+        }
+
+        const response = await axios.get(`${backendUrl}/api/books`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+        
+        setBooks(response.data);
+      } catch (error) {
+        console.error('Error fetching books:', error);
+      }
+    };
+
+    fetchBooks();
+  }, []);
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
@@ -28,7 +57,7 @@ const DashBoard = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/auth/user', {
+        const response = await axios.get(`${backendUrl}/api/auth/user`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -55,7 +84,7 @@ const DashBoard = () => {
       }
 
       try {
-        const response = await fetch('http://localhost:5000/api/auth/user', {
+        const response = await fetch(`${backendUrl}/api/auth/user`, {
           method: 'GET',
           headers: {
             Authorization: `Bearer ${token}`,
@@ -90,10 +119,7 @@ const DashBoard = () => {
     return <p style={{ color: 'red' }}>{errorMessage}</p>; // Display an error message
   }
 
-  if (!user) {
-    return <p>No user data available</p>; // Handle cases where no data is returned
-  }
-
+ 
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/auth');
@@ -107,28 +133,7 @@ const DashBoard = () => {
     );
   }
 
-  const bookRecommendations = [
-    {
-      title: "The Psychology of Money",
-      author: "Morgan Housel",
-      cover: "/images/The Psychology of Money.jpg"
-    },
-    {
-      title: "Company of One",
-      author: "Paul Jarvis",
-      cover: "/images/Company of One.jpg"
-    },
-    {
-      title: "How Innovation Works",
-      author: "Matt Ridley",
-      cover: "/images/How Innovation Works.jpg"
-    },
-    {
-      title: "The Picture of Dorian Gray",
-      author: "Oscar Wilde",
-      cover: "/images/The Picture of Dorian Gray.jpg"
-    }
-  ];
+
 
   const categories = [
     { name: "Money/Investing", icon: <DollarSign size={24} color="green" /> },
@@ -154,7 +159,7 @@ const DashBoard = () => {
         </div>
 
         <nav className="space-y-6 mb-6">
-          <div className="text-gray-400 text-sm flex items-center">
+          <div className="text-gray-400 text-sm flex items-center cursor-pointer hover:text-coral-800">
             <MenuIcon className='mr-2' />MENU
           </div>
           <div className="space-y-2">
@@ -165,9 +170,9 @@ const DashBoard = () => {
               Discover
             </div>
 
-            <div className="flex items-center gap-3 text-gray-600">
+            <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                <BookOpenIcon />
+                <BookOpenIcon className='hover:text-coral-800' />
               </div>
               Category
             </div>
@@ -178,15 +183,15 @@ const DashBoard = () => {
               </div>
               My Library
             </div>
-
-            <div className="flex items-center gap-3 text-gray-600">
+      <Link to="/book-upload" className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+            <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                <DownloadCloudIcon />
+                <UploadCloudIcon />
               </div>
-              Download
+           Upload
             </div>
-
-            <div className="flex items-center gap-3 text-gray-600">
+      </Link>
+            <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                 <HeartIcon />
               </div>
@@ -196,21 +201,21 @@ const DashBoard = () => {
         </nav>
 
         <div className="pt-10 border-t border-gray-200 text-sm font-medium text-gray-600 space-y-2">
-          <div className="flex items-center gap-3 text-gray-600">
+          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-500">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
               <Settings />
             </div>
             Setting
           </div>
 
-          <div className="flex items-center gap-3 text-gray-600">
+          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-500">
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
               <HelpCircleIcon />
             </div>
             Help
           </div>
 
-          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-500" onClick={handleLogout}>
+          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800" onClick={handleLogout}>
             <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center" >
               <LogOutIcon />
             </div>
@@ -265,12 +270,12 @@ const DashBoard = () => {
             <button className="text-sm text-gray-600">View all</button>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {bookRecommendations.map((book, index) => (
+            {books.map((book, index) => (
               <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
                 <img
-                  src={book.cover}
+                  src={book.coverImage}
                   alt={book.title}
-                  className="w-full h-48 object-cover rounded-lg mb-4"
+                  className="w-full h-48 object-fit rounded-lg mb-4"
                 />
                 <h3 className="font-medium">{book.title}</h3>
                 <p className="text-sm text-gray-600">{book.author}</p>

@@ -14,6 +14,11 @@ const AuthSystem = () => {
   });
   const [errors, setErrors] = useState({});
 
+  const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
+
   const validateForm = () => {
     const newErrors = {};
 
@@ -44,8 +49,8 @@ const AuthSystem = () => {
     if (!validateForm()) return;
 
     const url = isLogin
-      ? 'http://localhost:5000/api/auth/login'
-      : 'http://localhost:5000/api/auth/register';
+      ? `${backendUrl}/api/auth/login`
+      : `${backendUrl}/api/auth/register`;
 
     const payload = isLogin
       ? {
@@ -66,6 +71,7 @@ const AuthSystem = () => {
           const { token } = response.data;
           if (token) {
             localStorage.setItem('token', token);
+            console.log('Token stored in localStorage:', token); // Debug log
             toast.success('Login successful! Redirecting...');
             setTimeout(() => {
               window.location.href = '/'; // Redirect to dashboard
@@ -78,6 +84,7 @@ const AuthSystem = () => {
       } else {
         toast.error(response.data.message || 'Something went wrong.');
       }
+      
     } catch (error) {
       const errorMessage = error.response?.data?.message || error.message || 'Something went wrong.';
       console.error(`Error during ${isLogin ? 'login' : 'registration'}:`, errorMessage);

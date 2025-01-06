@@ -14,6 +14,12 @@ const ProfileCustomization = () => {
     'Romance', 'Business', 'Self-Help', 'Biography', 'History',
     'Science', 'Technology', 'Arts', 'Poetry', 'Drama'
   ];
+
+  const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
+
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false); 
   const [lastUpdate, setLastUpdate] = useState(null);
@@ -28,7 +34,7 @@ const ProfileCustomization = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/api/auth/user', {
+        const response = await axios.get('${backendUrl}/api/auth/user', {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -71,7 +77,7 @@ const ProfileCustomization = () => {
     formData.append('avatar', file);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/user/avatar', formData, {
+      const response = await axios.post('${backendUrl}/api/auth/user/avatar', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -109,7 +115,7 @@ const ProfileCustomization = () => {
     }
 
     const response = await axios.put(
-      'http://localhost:5000/api/auth/user',
+      '${backendUrl}/api/auth/user',
       profile,
       {
         headers: {

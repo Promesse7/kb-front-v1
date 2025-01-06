@@ -8,6 +8,8 @@ import AlertDescription from '../Components/ui/AlertDescription';
 import axios from "axios";
 import { Plus, Minus, Save, Image as ImageIcon, Loader2, X } from 'lucide-react';
 
+
+
 const BookUpload = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -29,12 +31,18 @@ const BookUpload = () => {
         chapterNumber: 1
       }
     ],
-    coverImage: null
+    coverImage: ''
   });
+
+  const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : process.env.NEXT_PUBLIC_BACKEND_URL;
 
   const categories = [
     'Fiction', 'Non-Fiction', 'Science', 'Technology', 
-    'History', 'Biography', 'Other'
+    'History', 'Biography','Romance', 'Business', 'Self-Help', 
+      'Arts', 'Poetry', 'Drama', 
   ];
 
   const handleInputChange = (e) => {
@@ -188,28 +196,26 @@ const BookUpload = () => {
   };
 
  // 1. First, let's modify your handleSubmit to properly set the headers
-const handleSubmit = async (e) => {
+ const handleSubmit = async (e) => {
   e.preventDefault();
   setLoading(true);
   setError(null);
   setSuccess(false);
   
   try {
-    // Validate required fields
     if (!formData.title || !formData.author || !formData.isbn) {
       setError('Please fill in all required fields');
+      setLoading(false);
       return;
     }
     
-    // Validate chapters
     if (formData.chapters.some(chapter => !chapter.title || !chapter.content)) {
       setError('All chapters must have both title and content');
+      setLoading(false);
       return;
     }
 
     const submitData = new FormData();
-    
-    // Add all non-chapter data
     Object.keys(formData).forEach(key => {
       if (key !== 'chapters') {
         if (key === 'coverImage' && formData[key] === null) {
@@ -218,8 +224,6 @@ const handleSubmit = async (e) => {
         submitData.append(key, formData[key]);
       }
     });
-    
-    // Add chapters as JSON string
     submitData.append('chapters', JSON.stringify(formData.chapters));
     
     const token = localStorage.getItem('token');
@@ -227,20 +231,16 @@ const handleSubmit = async (e) => {
       throw new Error('Authentication token not found. Please log in again.');
     }
 
-    // Debug log to check token
     console.log('Token being sent:', token);
 
-    const response = await fetch('http://localhost:5000/api/upload-book', {
+    const response = await fetch(`${backendUrl}/api/upload-book`, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${token}`,
-        // Don't set Content-Type when using FormData
+        'Authorization': `Bearer ${token}`
       },
-      body: submitData,
-      credentials: 'include' // Add this to include cookies
+      body: submitData
     });
 
-    // Debug log for response
     console.log('Response status:', response.status);
     console.log('Response headers:', Object.fromEntries(response.headers));
 
@@ -264,6 +264,8 @@ const handleSubmit = async (e) => {
     setLoading(false);
   }
 };
+
+
 
   const resetForm = () => {
     setFormData({
