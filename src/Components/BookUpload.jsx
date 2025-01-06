@@ -127,7 +127,7 @@ const BookUpload = () => {
       formData.append('cloud_name', 'dlhu0vkqm');
       formData.append('folder', 'book-covers');
       formData.append('timestamp', timestamp);
-  
+   
       // Log the form data for debugging
       console.log('Upload parameters:', {
         file: file.name,
