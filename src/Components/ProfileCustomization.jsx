@@ -18,7 +18,7 @@ const ProfileCustomization = () => {
   const backendUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5000" // Local backend
-    : process.env.NEXT_PUBLIC_BACKEND_URL;
+    : 'https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40?key=NsuG-TIYDKU';
 
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false); 
