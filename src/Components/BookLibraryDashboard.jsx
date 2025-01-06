@@ -25,7 +25,7 @@ const DashBoard = () => {
   const [avatar, setAvatar] = useState(avatarDefault);
   const [profile, setProfile] = useState(null);
   const [books, setBooks] = useState([]);
-
+  const isAdmin = user && user.isAdmin;
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -183,14 +183,16 @@ const DashBoard = () => {
               </div>
               My Library
             </div>
-      <Link to="/book-upload" className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
-            <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
-              <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
-                <UploadCloudIcon />
-              </div>
-           Upload
+            {isAdmin && (
+        <Link to="/book-upload" className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+          <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+              <UploadCloudIcon />
             </div>
-      </Link>
+            Upload
+          </div>
+        </Link>
+      )}
             <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
                 <HeartIcon />
