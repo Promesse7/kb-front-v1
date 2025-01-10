@@ -14,14 +14,13 @@ const AuthSystem = () => {
   });
   const [errors, setErrors] = useState({});
 
-  const backendUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:5000" // Local backend
-    : 'https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40?key=NsuG-TIYDKU';
+  // Updated backend URL configuration
+  const backendUrl = process.env.NODE_ENV === "development"
+    ? "http://localhost:5000"
+    : "https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40";
 
   const validateForm = () => {
     const newErrors = {};
-
     if (!formData.email) {
       newErrors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
@@ -44,26 +43,28 @@ const AuthSystem = () => {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
-    // Early exit if form is invalid
     if (!validateForm()) return;
 
-    const url = isLogin
-      ? `${backendUrl}/api/auth/login`
-      : `${backendUrl}/api/auth/register`;
-
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
+    const url = `${backendUrl}${endpoint}`;
+    
     const payload = isLogin
-      ? {
-        email: formData.email.trim(),
-        password: formData.password.trim()
-      }
-      : { name: formData.name.trim(), email: formData.email.trim(), password: formData.password.trim() };
+      ? { email: formData.email.trim(), password: formData.password.trim() }
+      : { 
+          name: formData.name.trim(), 
+          email: formData.email.trim(), 
+          password: formData.password.trim() 
+        };
 
     try {
       const response = await axios.post(url, payload, {
         headers: {
           'Content-Type': 'application/json',
+          'Access-Control-Allow-Origin': '*'
         },
+        params: {
+          key: 'NsuG-TIYDKU'
+        }
       });
 
       if (response.status === 200 || response.status === 201) {
@@ -71,42 +72,42 @@ const AuthSystem = () => {
           const { token } = response.data;
           if (token) {
             localStorage.setItem('token', token);
-            console.log('Token stored in localStorage:', token); // Debug log
             toast.success('Login successful! Redirecting...');
             setTimeout(() => {
-              window.location.href = '/'; // Redirect to dashboard
+              window.location.href = '/';
             }, 2000);
           }
         } else {
           toast.success('Registration successful! Please log in.');
           setIsLogin(true);
+          setFormData({ name: '', email: '', password: '' });
         }
-      } else {
-        toast.error(response.data.message || 'Something went wrong.');
       }
-      
     } catch (error) {
-      const errorMessage = error.response?.data?.message || error.message || 'Something went wrong.';
-      console.error(`Error during ${isLogin ? 'login' : 'registration'}:`, errorMessage);
-      toast.error(errorMessage);
-
+      const errorMessage = error.response?.data?.message || 
+        error.message || 
+        'Authentication failed. Please try again.';
+      
+      console.error(`Error during ${isLogin ? 'login' : 'registration'}:`, error);
+      
       if (error.code === 'ECONNABORTED') {
-        toast.error('Network timeout, please try again later.');
+        toast.error('Request timeout. Please try again.');
       } else if (error.message.includes('Network Error')) {
-        toast.error('Network error, check your internet connection.');
+        toast.error('Network error. Please check your connection.');
+      } else {
+        toast.error(errorMessage);
       }
     }
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
+    setFormData(prev => ({
       ...prev,
       [name]: value,
     }));
-
     if (errors[name]) {
-      setErrors((prev) => ({
+      setErrors(prev => ({
         ...prev,
         [name]: '',
       }));
@@ -181,14 +182,6 @@ const AuthSystem = () => {
             </div>
             {errors.password && <p className="text-red-500 text-sm mt-1">{errors.password}</p>}
           </div>
-
-          {isLogin && (
-            <div className="flex justify-end">
-              <button type="button" className="text-sm text-teal-600 hover:text-teal-800">
-                Forgot Password?
-              </button>
-            </div>
-          )}
 
           <button
             type="submit"
