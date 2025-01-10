@@ -1,6 +1,7 @@
 import './App.css';
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import axios from 'axios';
 import DashBoard from './Components/BookLibraryDashboard';
 import BookLibrary from './Components/BookLibrary';
 import ProfileCustomization from './Components/ProfileCustomization';
@@ -13,104 +14,147 @@ import ReadingHistory from './Components/ReadingHistory';
 import BookUpload from './Components/BookUpload';
 import BookReader from './Components/BookReader';
 
-const backendUrl =
-  process.env.NODE_ENV === "development"
-    ? "http://localhost:5000" // Local backend
-    : 'https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40?key=NsuG-TIYDKU';
-
-const checkAuthStatus = async () => {
-  try {
-    const response = await fetch(`${backendUrl}/api/auth/check-status`, {
-      method: 'GET',
-      mode: 'no-cors',
-      credentials: 'include', // Include credentials
-      headers: {
-        'Content-Type': 'application/json',
-      },
-    });
-
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
-
-    const data = await response.json();
-    console.log('Authentication status:', data);
-
-    return data.isAuthenticated;
-  } catch (error) {
-    console.error('Error checking authentication status:', error);
-    return false; // Return false if there's an error
-  }
-};
-
-
-
-function App() {
+const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const backendUrl = process.env.NODE_ENV === "development"
+    ? "http://localhost:5000"
+    : "https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40";
 
   useEffect(() => {
-    // Check authentication status when the app loads
-    const fetchAuthStatus = async () => {
-      const authStatus = await checkAuthStatus();
-      setIsAuthenticated(authStatus);
-    };
-    fetchAuthStatus();
-  }, []);
+    const checkAuthStatus = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+          setIsAuthenticated(false);
+          setIsLoading(false);
+          return;
+        }
 
-  if (isAuthenticated === null) {
-    // Optionally, show a loading indicator while authentication status is being fetched
-    return <div className='flex justify-center items-center h-screen text-2xl text-gray-500 '>Loading...</div>;
+        const response = await axios.get(`${backendUrl}/api/auth/check-status`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          },
+          params: {
+            key: 'NsuG-TIYDKU'
+          }
+        });
+
+        setIsAuthenticated(response.data.isAuthenticated);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+        
+        // Clear token if it's invalid
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token');
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuthStatus();
+  }, [backendUrl]);
+
+  // Protected Route wrapper component
+  const ProtectedRoute = ({ children }) => {
+    if (isLoading) {
+      return <div className="flex justify-center items-center h-screen text-2xl text-gray-500">Loading...</div>;
+    }
+    
+    if (!isAuthenticated) {
+      return <Navigate to="/auth" />;
+    }
+    
+    return children;
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen text-2xl text-gray-500">
+        Loading...
+      </div>
+    );
   }
 
   return (
     <Router>
       <Routes>
         {/* Protected Routes */}
-        <Route
-          path="/"
-          element={isAuthenticated ? <DashBoard /> : <Navigate to="/auth" />}
-        />
-        <Route
-          path="/profile"
-          element={isAuthenticated ? <ProfileCustomization /> : <Navigate to="/auth" />}
-        />
-        <Route
-          path="/reading-goals"
-          element={isAuthenticated ? <ReadingGoals /> : <Navigate to="/auth" />}
-        />
-        <Route
-          path="/reading-progress"
-          element={isAuthenticated ? <ReadingTracker /> : <Navigate to="/auth" />}
-        />
-        <Route
-        path="/achievements"
-        element={isAuthenticated ? < Achievements/> : <Navigate to="/auth" />}
-        />
-        <Route
-        path="/reading-history"
-        element={isAuthenticated ? <ReadingHistory/> : <Navigate to="/auth" />}
-        />
-       <Route
-       path="/book-management"
-       element={isAuthenticated ? <BookManagement/> : <Navigate to="/auth" />}
-       />
-        <Route
-       path="/book-upload"
-       element={isAuthenticated ? <BookUpload/> : <Navigate to="/auth" />}
-       />
-           <Route
-       path="/book-reader"
-       element={isAuthenticated ? <BookReader/> : <Navigate to="/auth" />}
-       />
-   <Route
-       path="/book-library"
-       element={isAuthenticated ? <BookLibrary/> : <Navigate to="/auth" />}
-       />
+        <Route path="/" element={
+          <ProtectedRoute>
+            <DashBoard />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/profile" element={
+          <ProtectedRoute>
+            <ProfileCustomization />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reading-goals" element={
+          <ProtectedRoute>
+            <ReadingGoals />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reading-progress" element={
+          <ProtectedRoute>
+            <ReadingTracker />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/achievements" element={
+          <ProtectedRoute>
+            <Achievements />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/reading-history" element={
+          <ProtectedRoute>
+            <ReadingHistory />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/book-management" element={
+          <ProtectedRoute>
+            <BookManagement />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/book-upload" element={
+          <ProtectedRoute>
+            <BookUpload />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/book-reader" element={
+          <ProtectedRoute>
+            <BookReader />
+          </ProtectedRoute>
+        } />
+        
+        <Route path="/book-library" element={
+          <ProtectedRoute>
+            <BookLibrary />
+          </ProtectedRoute>
+        } />
+
         {/* Public Route */}
-        <Route path="/auth" element={<AuthSystem />} />
+        <Route path="/auth" element={
+          isAuthenticated ? <Navigate to="/" /> : <AuthSystem />
+        } />
+        
+        {/* Catch all route */}
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
