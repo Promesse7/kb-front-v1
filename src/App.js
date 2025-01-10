@@ -22,6 +22,7 @@ const checkAuthStatus = async () => {
   try {
     const response = await fetch(`${backendUrl}/api/auth/check-status`, {
       method: 'GET',
+      mode: 'no-cors',
       credentials: 'include', // Include credentials
       headers: {
         'Content-Type': 'application/json',
