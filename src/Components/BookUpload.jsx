@@ -37,7 +37,7 @@ const BookUpload = () => {
   const backendUrl =
   process.env.NODE_ENV === "development"
     ? "http://localhost:5000" // Local backend
-    : 'https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40?key=NsuG-TIYDKU';
+    : 'https://kb-library.onrender.com';
 
   const categories = [
     'Fiction', 'Non-Fiction', 'Science', 'Technology', 
