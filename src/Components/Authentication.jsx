@@ -44,29 +44,25 @@ const AuthSystem = () => {
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
-
+  
     const endpoint = isLogin ? '/api/auth/login' : '/api/auth/register';
     const url = `${backendUrl}${endpoint}`;
-    
+  
     const payload = isLogin
       ? { email: formData.email.trim(), password: formData.password.trim() }
-      : { 
-          name: formData.name.trim(), 
-          email: formData.email.trim(), 
-          password: formData.password.trim() 
+      : {
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          password: formData.password.trim(),
         };
-
+  
     try {
       const response = await axios.post(url, payload, {
         headers: {
           'Content-Type': 'application/json',
-          'Access-Control-Allow-Origin': '*'
         },
-        params: {
-          key: 'NsuG-TIYDKU'
-        }
       });
-
+  
       if (response.status === 200 || response.status === 201) {
         if (isLogin) {
           const { token } = response.data;
@@ -84,12 +80,13 @@ const AuthSystem = () => {
         }
       }
     } catch (error) {
-      const errorMessage = error.response?.data?.message || 
-        error.message || 
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
         'Authentication failed. Please try again.';
-      
+  
       console.error(`Error during ${isLogin ? 'login' : 'registration'}:`, error);
-      
+  
       if (error.code === 'ECONNABORTED') {
         toast.error('Request timeout. Please try again.');
       } else if (error.message.includes('Network Error')) {
