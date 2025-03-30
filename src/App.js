@@ -20,7 +20,7 @@ const App = () => {
 
   const backendUrl = process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : "https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40";
+    : "https://kb-library.onrender.com";
 
   useEffect(() => {
     const checkAuthStatus = async () => {
