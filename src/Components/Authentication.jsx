@@ -17,7 +17,8 @@ const AuthSystem = () => {
   // Updated backend URL configuration
   const backendUrl = process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : "https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40";
+    : "https://api.render.com/deploy/srv-ctqdhobqf0us73elrd40?key=NsuG-TIYDKU";
+    
 
   const validateForm = () => {
     const newErrors = {};
