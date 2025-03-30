@@ -17,7 +17,7 @@ const AuthSystem = () => {
   // Updated backend URL configuration
   const backendUrl = process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
-    : "https://srv-ctqdhobqf0us73elrd40.onrender.com";
+    : "https://kb-library.onrender.com";
     
 
   const validateForm = () => {
