@@ -1,25 +1,28 @@
 import React from 'react';
 import { BookOpen, Search, Heart, Coffee, BookMarked, ChevronRight } from 'lucide-react';
+import PersonReading from '../../Images/Person-reading.jpg'
+import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
+  const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white font-sans">
+    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white font-sans">
       {/* Navigation */}
       <nav className="container mx-auto px-6 py-4">
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <span className="ml-2 text-2xl font-bold text-blue-800">ReadVerse</span>
+            <BookOpen className="h-8 w-8 text-teal-600" />
+            <span className="ml-2 text-2xl font-bold text-teal-800">ReadVerse</span>
           </div>
           <div className="hidden md:flex space-x-8">
-            <a href="#" className="text-gray-700 hover:text-blue-600 transition">Home</a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 transition">Books</a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 transition">Categories</a>
-            <a href="#" className="text-gray-700 hover:text-blue-600 transition">About</a>
+            <a href="#" className="text-gray-700 hover:text-teal-600 transition">Home</a>
+            <a href="#books" className="text-gray-700 hover:text-teal-600 transition">Books</a>
+            <a href="#" className="text-gray-700 hover:text-teal-600 transition">Categories</a>
+            <a href="#" className="text-gray-700 hover:text-teal-600 transition">About</a>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 text-blue-600 hover:text-blue-800 transition">Sign In</button>
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition">Sign Up</button>
+            <button className="px-4 py-2 text-teal-600 hover:text-teal-800 transition" onClick={() => navigate('/auth')}>Sign In</button>
+            <button className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition" onClick={() => navigate('/auth')}>Sign Up</button>
           </div>
         </div>
       </nav>
@@ -30,23 +33,23 @@ const LandingPage = () => {
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-6">
             Discover a World of Stories at Your Fingertips
           </h1>
-          <p className="text-lg text-gray-600 mb-8">
+          <p className="text-lg text-gray-600 mb-8 md:mb-12">
             Access thousands of books and novels. Read anywhere, anytime, on any device. Start your reading journey today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-6 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition flex items-center">
+            <button className="px-6 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition flex items-center">
               Get Started <ChevronRight className="ml-2 h-5 w-5" />
             </button>
-            <button className="px-6 py-3 border border-blue-600 text-blue-600 rounded-md hover:bg-blue-50 transition">
+            <button className="px-6 py-3 border border-teal-600 text-teal-600 rounded-md hover:bg-teal-50 transition">
               Explore Library
             </button>
           </div>
         </div>
-        <div className="md:w-1/2">
+        <div className="md:ml-[10vw] md:w-1/2">
           <img
-            src="/api/placeholder/600/400" 
+            src={PersonReading} 
             alt="Person reading on a tablet"
-            className="rounded-lg shadow-xl"
+            className="rounded-lg shadow-xl fit h-[40vh] w-auto object-cover"
           />
         </div>
       </section>
@@ -56,27 +59,27 @@ const LandingPage = () => {
         <div className="container mx-auto px-6">
           <h2 className="text-3xl font-bold text-center text-gray-800 mb-12">Why Readers Love Us</h2>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            <div className="p-6 bg-blue-50 rounded-lg">
-              <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
-                <BookMarked className="h-8 w-8 text-blue-600" />
+            <div className="p-6 bg-teal-50 rounded-lg">
+              <div className="p-4 bg-teal-100 rounded-full inline-block mb-4">
+                <BookMarked className="h-8 w-8 text-teal-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-3">Vast Collection</h3>
               <p className="text-gray-600">
                 Access thousands of books across all genres, from classics to the latest bestsellers.
               </p>
             </div>
-            <div className="p-6 bg-blue-50 rounded-lg">
-              <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
-                <Coffee className="h-8 w-8 text-blue-600" />
+            <div className="p-6 bg-teal-50 rounded-lg">
+              <div className="p-4 bg-teal-100 rounded-full inline-block mb-4">
+                <Coffee className="h-8 w-8 text-teal-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-3">Comfortable Reading</h3>
               <p className="text-gray-600">
                 Customizable fonts, themes, and reading modes to suit your preferences.
               </p>
             </div>
-            <div className="p-6 bg-blue-50 rounded-lg">
-              <div className="p-4 bg-blue-100 rounded-full inline-block mb-4">
-                <Heart className="h-8 w-8 text-blue-600" />
+            <div className="p-6 bg-teal-50 rounded-lg">
+              <div className="p-4 bg-teal-100 rounded-full inline-block mb-4">
+                <Heart className="h-8 w-8 text-teal-600" />
               </div>
               <h3 className="text-xl font-bold text-gray-800 mb-3">Personalized</h3>
               <p className="text-gray-600">
@@ -88,10 +91,10 @@ const LandingPage = () => {
       </section>
 
       {/* Popular Books Section */}
-      <section className="container mx-auto px-6 py-16">
+      <section className="container mx-auto px-6 py-16" id='books'>
         <div className="flex justify-between items-center mb-8">
           <h2 className="text-3xl font-bold text-gray-800">Popular This Week</h2>
-          <a href="#" className="text-blue-600 hover:text-blue-800 flex items-center">
+          <a href="#" className="text-teal-600 hover:text-teal-800 flex items-center">
             View All <ChevronRight className="ml-1 h-5 w-5" />
           </a>
         </div>
@@ -116,16 +119,16 @@ const LandingPage = () => {
       </section>
 
       {/* Search Section */}
-      <section className="bg-blue-600 py-16">
+      <section className="bg-teal-600 py-16">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Looking for something specific?</h2>
           <div className="max-w-2xl mx-auto relative">
             <input
               type="text"
               placeholder="Search by title, author, or genre..."
-              className="w-full py-4 px-6 rounded-full shadow-xl focus:outline-none focus:ring-2 focus:ring-blue-400"
+              className="w-full py-4 px-6 rounded-full shadow-xl focus:outline-none focus:ring-2 focus:ring-teal-400"
             />
-            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-blue-500 p-3 rounded-full text-white hover:bg-blue-700 transition">
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2 bg-teal-500 p-3 rounded-full text-white hover:bg-teal-700 transition">
               <Search className="h-5 w-5" />
             </button>
           </div>
@@ -159,13 +162,13 @@ const LandingPage = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-blue-50 py-16">
+      <section className="bg-teal-50 py-16">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-6">Ready to start reading?</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
             Join thousands of readers who have already discovered their next favorite book on ReadVerse.
           </p>
-          <button className="px-8 py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition text-lg">
+          <button className="px-8 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition text-lg" onClick={() => navigate('/auth')}>
             Sign Up for Free
           </button>
           <p className="mt-4 text-gray-600">No credit card required. Cancel anytime.</p>
@@ -178,7 +181,7 @@ const LandingPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
-                <BookOpen className="h-6 w-6 text-blue-400" />
+                <BookOpen className="h-6 w-6 text-teal-400" />
                 <span className="ml-2 text-xl font-bold">ReadVerse</span>
               </div>
               <p className="text-gray-400">
@@ -212,7 +215,7 @@ const LandingPage = () => {
                   placeholder="Your email"
                   className="px-4 py-2 rounded-l-md focus:outline-none text-gray-800 w-full"
                 />
-                <button className="bg-blue-600 px-4 py-2 rounded-r-md hover:bg-blue-700 transition">
+                <button className="bg-teal-600 px-4 py-2 rounded-r-md hover:bg-teal-700 transition">
                   Subscribe
                 </button>
               </div>

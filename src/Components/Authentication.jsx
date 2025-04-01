@@ -71,7 +71,7 @@ const AuthSystem = () => {
             localStorage.setItem('token', token);
             toast.success('Login successful! Redirecting...');
             setTimeout(() => {
-              window.location.href = '/';
+              window.location.href = '/dashboard';
             }, 2000);
           }
         } else {

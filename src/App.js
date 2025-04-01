@@ -11,6 +11,7 @@ import ReadingTracker from './Components/ReadingProgressTracking';
 import BookManagement from './Components/BookManagement';
 import Achievements from './Components/AchievementSystem';
 import ReadingHistory from './Components/ReadingHistory';
+import LandingPage from './Components/pages/LandingPage';
 import BookUpload from './Components/BookUpload';
 import BookReader from './Components/BookReader';
 
@@ -22,43 +23,57 @@ const App = () => {
     ? "http://localhost:5000"
     : "https://kb-library.onrender.com";
 
-  useEffect(() => {
-    const checkAuthStatus = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        
-        if (!token) {
-          setIsAuthenticated(false);
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await axios.get(`${backendUrl}/api/auth/check-status`, {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          },
-          params: {
-            key: 'NsuG-TIYDKU'
+    useEffect(() => {
+      const checkAuthStatus = async () => {
+        try {
+          const token = localStorage.getItem('token');
+          
+          if (!token) {
+            setIsAuthenticated(false);
+            setIsLoading(false);
+            return;
           }
-        });
-
-        setIsAuthenticated(response.data.isAuthenticated);
-      } catch (error) {
-        console.error('Auth check failed:', error);
-        setIsAuthenticated(false);
-        
-        // Clear token if it's invalid
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token');
+    
+          console.log("Checking auth status..."); // Debugging log
+          console.log("Backend URL:", backendUrl);
+    
+          const response = await axios.get(`${backendUrl}/api/auth/check-status`, {
+            headers: {
+              'Authorization': `Bearer ${token}`,
+              'Content-Type': 'application/json'
+            },
+            params: { key: 'NsuG-TIYDKU' },
+            withCredentials: true  // Add this if using cookies for auth
+          });
+    
+          console.log("Auth Response:", response.data); // Debugging log
+    
+          setIsAuthenticated(response.data.isAuthenticated);
+        } catch (error) {
+          console.error('Auth check failed:', error);
+          
+          if (error.response) {
+            console.error('Response Data:', error.response.data);
+            console.error('Response Status:', error.response.status);
+          } else if (error.request) {
+            console.error('No response from server:', error.request);
+          } else {
+            console.error('Error Message:', error.message);
+          }
+    
+          setIsAuthenticated(false);
+          
+          if (error.response?.status === 401) {
+            localStorage.removeItem('token');
+          }
+        } finally {
+          setIsLoading(false);
         }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuthStatus();
-  }, [backendUrl]);
+      };
+    
+      checkAuthStatus();
+    }, [backendUrl]);
+    
 
   // Protected Route wrapper component
   const ProtectedRoute = ({ children }) => {
@@ -84,8 +99,11 @@ const App = () => {
   return (
     <Router>
       <Routes>
+         {/* Landing Page route */}
+         <Route path="/" element={<LandingPage />} />
+
         {/* Protected Routes */}
-        <Route path="/" element={
+        <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashBoard />
           </ProtectedRoute>
