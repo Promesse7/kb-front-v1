@@ -15,6 +15,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import avatarDefault from '../Images/user-icon.png';
 import BookUpload from './BookUpload';
 import BookLibrary from './BookLibrary';
+import BookReader from "./BookReader"
 
 const backendUrl =
   process.env.NODE_ENV === "development"
@@ -30,11 +31,13 @@ const DashBoard = () => {
   const [avatar, setAvatar] = useState(avatarDefault);
   const [profile, setProfile] = useState(null);
   const [error, setError] = useState(null);
+  const [bookToConfirm, setBookToConfirm] = useState(null);
   const [books, setBooks] = useState([]);
   const [userRole, setUserRole] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(null);
-  const isAdmin = user && user.isAdmin;
   const [selectedTab, setSelectedTab] = useState("discover");
+  const [selectedBook, setSelectedBook] = useState(null);
+
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -59,7 +62,7 @@ const DashBoard = () => {
         });
 
         setIsAuthenticated(response.data.isAuthenticated);
-        setUserRole(response.data.role); // Assuming the response contains a 'role' field
+
       } catch (error) {
         console.error('Auth check failed:', error);
         setIsAuthenticated(false);
@@ -117,6 +120,7 @@ const DashBoard = () => {
         // Check if response.data is available and contains 'avatar'
         if (response.data && response.data.avatar) {
           setProfile(response.data);
+          setUserRole(response.data.role); // Assuming the response contains a 'role' field
           setAvatar(response.data.avatar);
         } else {
           setAvatar(null); // Set to null if no avatar found
@@ -178,6 +182,33 @@ const DashBoard = () => {
     return <p style={{ color: 'red' }}>{errorMessage}</p>; // Display an error message
   }
 
+
+
+  // Function to handle book selection with confirmation
+  const handleReadBook = (book) => {
+    setBookToConfirm(book); // Show the popup for this book
+  };
+
+  // Function to confirm reading
+  const confirmReading = () => {
+    setSelectedBook(bookToConfirm);
+    setBookToConfirm(null); // Close the popup
+  };
+
+  // Function to cancel reading
+  const cancelReading = () => {
+    setBookToConfirm(null); // Close the popup without selecting
+  };
+
+  // Function to close the BookReader
+  const handleCloseReader = () => {
+    setSelectedBook(null);
+  };
+
+  const handleEditBook = (bookId) => {
+    navigate(`/edit/${bookId}`);
+  };
+
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/auth');
@@ -189,7 +220,7 @@ const DashBoard = () => {
         return (
           <>
             {/* Search Bar */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-8">
+            <div className="flex flex-col lg:flex-row gap-4 mb-4">
               <div className="flex-1 flex flex-col lg:flex-row gap-2">
                 <select className="px-4 py-2 rounded-lg bg-white border border-gray-200">
                   <option>All Categories</option>
@@ -197,8 +228,8 @@ const DashBoard = () => {
                 <div className="flex-1 relative">
                   <input
                     type="text"
-                    placeholder="find the book you like..."
-                    className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200"
+                    placeholder="Find the book you like..."
+                    className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 capitalise"
                   />
                   <Search className="absolute right-3 top-2.5 text-gray-400" size={20} />
                 </div>
@@ -209,21 +240,40 @@ const DashBoard = () => {
             </div>
 
             {/* Book Recommendations */}
-            <div className="mb-12">
+            <div className="mb-4">
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-medium">Book Recommendations</h2>
                 <button className="text-sm text-gray-600">View all</button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex">
                 {books.map((book, index) => (
                   <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
                     <img
                       src={book.coverImage}
                       alt={book.title}
-                      className="w-full h-48 object-fit rounded-lg mb-4"
+                      className="w-full h-40 object-fit rounded-lg mb-4"
                     />
                     <h3 className="font-medium">{book.title}</h3>
                     <p className="text-sm text-gray-600">{book.author}</p>
+
+                    <div className='flex  mx-auto justify-around '>
+                      <button
+                        onClick={() => handleReadBook(book)}
+                        className="mt-2 px-2 py-2 bg-teal-800 text-white rounded hover:bg-teal-900  block">
+                        Read Book
+                      </button>
+
+                      {userRole === 'admin' && (
+                        <button
+                          onClick={() => handleEditBook(book._id)}
+                          className="mt-2 px-2 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+                        >
+                          Edit Book
+                        </button>
+                      )}
+                    </div>
+
+
                   </div>
                 ))}
               </div>
@@ -264,8 +314,8 @@ const DashBoard = () => {
         return (
           <BookUpload />
         );
-      
-        case "library":
+
+      case "library":
         return (
           <BookLibrary />
         );
@@ -276,8 +326,28 @@ const DashBoard = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-teal-800"></div>
+      <div className="flex justify-center  items-center min-h-screen bg-gray-100">
+        <div className="relative flex flex-col items-center">
+          {/* Book Container */}
+          <div className="w-40 h-28 bg-white rounded-lg shadow-lg transform perspective-1000">
+            {/* Left Page */}
+            <div className="absolute left-0 w-1/2 h-full bg-gray-50 border-r border-gray-200 rounded-l-lg overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-r from-gray-50 to-gray-100 animate-flip-left"></div>
+            </div>
+            {/* Right Page */}
+            <div className="absolute right-0 w-1/2 h-full bg-gray-50 border-l border-gray-200 rounded-r-lg overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-l from-gray-50 to-gray-100 animate-flip-right"></div>
+            </div>
+            {/* Spine */}
+            <div className="absolute inset-0 flex justify-center">
+              <div className="w-1 h-full bg-teal-600"></div>
+            </div>
+          </div>
+          {/* Loading Text */}
+          <p className="mt-4 text-lg font-semibold text-teal-600 animate-pulse">
+            Opening Your Next Adventure...
+          </p>
+        </div>
       </div>
     );
   }
@@ -287,13 +357,13 @@ const DashBoard = () => {
   const categories = [
     { name: "Money/Investing", icon: <DollarSign size={24} color="green" /> },
     { name: "Design", icon: <PenTool size={24} color="purple" /> },
-    { name: "Business", icon: <Briefcase size={24} color="blue" /> },
+    { name: "Business", icon: <Briefcase size={24} color="teal" /> },
     { name: "Self Improvement", icon: <Target size={24} color="orange" /> },
   ];
 
   return (
 
-    <div className='h-screen overflow-hidden'>
+    <div className='h-screen lg:overflow-hidden'>
       <ToastContainer />
       <div className="flex flex-col lg:flex-row min-h-screen bg-stone-100 ">
 
@@ -387,8 +457,8 @@ const DashBoard = () => {
 
 
         {/* Main Content */}
-        <main className="flex-1 p-8">
-          <div className="flex justify-between items-center mb-8">
+        <main className="flex-1 p-4">
+          <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold capitalize">{selectedTab}</h1>
             <Link to="/profile" className="px-4 py-2 bg-teal-800 text-white rounded-lg">
               <div className="flex items-center gap-4">
@@ -405,9 +475,53 @@ const DashBoard = () => {
               </div>
             </Link>
           </div>
+          <div>
+          </div>
+
 
           {renderContent(selectedTab)}
 
+          {/* Conditionally render BookReader */}
+          {selectedBook && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 flex justify-center items-center">
+              <div className="relative w-full h-full">
+                <button
+                  onClick={handleCloseReader}
+                  className="absolute top-4 right-4 px-4 py-2 bg-red-700 text-white z-50 rounded hover:bg-red-800 z-60"
+                >
+                  Close
+                </button>
+                <BookReader book={selectedBook} />
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation Popup */}
+          {bookToConfirm && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 z-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+                <h3 className="text-lg font-semibold mb-4">Confirm Reading</h3>
+                <p className="mb-6">
+                  Do you want to read <span className="font-medium">"{bookToConfirm.title}"</span> by{" "}
+                  <span className="font-medium">{bookToConfirm.author}</span>?
+                </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={cancelReading}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmReading}
+                    className="px-4 py-2 bg-teal-800 text-white rounded hover:bg-teal-900"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </main>
       </div>
     </div>

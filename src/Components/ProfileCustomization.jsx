@@ -34,7 +34,7 @@ const ProfileCustomization = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get('${backendUrl}/api/auth/user', {
+        const response = await axios.get(`${backendUrl}/api/auth/user`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem('token')}`
           }
@@ -77,7 +77,7 @@ const ProfileCustomization = () => {
     formData.append('avatar', file);
 
     try {
-      const response = await axios.post('${backendUrl}/api/auth/user/avatar', formData, {
+      const response = await axios.post(`${backendUrl}/api/auth/user/avatar`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           Authorization: `Bearer ${localStorage.getItem('token')}`
@@ -115,7 +115,7 @@ const ProfileCustomization = () => {
     }
 
     const response = await axios.put(
-      '${backendUrl}/api/auth/user',
+      `${backendUrl}/api/auth/user`,
       profile,
       {
         headers: {

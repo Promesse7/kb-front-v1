@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useParams } from 'react-router-dom';
 import Card from '../Components/ui/Card';
 import CardHeader from '../Components/ui/CardHeader';
 import CardTitle from '../Components/ui/CardTitle';
@@ -13,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 const BookUpload = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const { bookId } = useParams();
   const [success, setSuccess] = useState(false);
   const [imagePreview, setImagePreview] = useState(null);
   const [formData, setFormData] = useState({
@@ -46,6 +48,48 @@ const BookUpload = () => {
     'Arts', 'Poetry', 'Drama',
   ];
 
+
+
+  useEffect(() => {
+    if (bookId) {
+      const fetchBook = async () => {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem('token');
+          if (!token) throw new Error('Authentication token not found.');
+          
+          // Send the GET request to your backend with the Authorization header
+          const response = await axios.get(`${backendUrl}/api/books/${bookId}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+  
+          const bookData = response.data;  // The response is expected to be the book object
+  
+          // Ensure chapters have chapterNumber
+          const formattedChapters = bookData.chapters.map((chapter, index) => ({
+            ...chapter,
+            chapterNumber: index + 1
+          }));
+  
+          // Update state with the fetched book data
+          setFormData({
+            ...bookData,
+            chapters: formattedChapters,
+            coverImage: bookData.coverImage || null
+          });
+  
+          setImagePreview(bookData.coverImage || null);
+        } catch (error) {
+          console.error('Error fetching book:', error);
+          setError('Failed to load book data');
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchBook();
+    }
+  }, [bookId]);  // This will run again whenever bookId changes
+   // Dependency array includes bookId
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -202,20 +246,20 @@ const BookUpload = () => {
     setLoading(true);
     setError(null);
     setSuccess(false);
-
+  
     try {
       if (!formData.title || !formData.author || !formData.isbn) {
         setError('Please fill in all required fields');
         setLoading(false);
         return;
       }
-
+  
       if (formData.chapters.some(chapter => !chapter.title || !chapter.content)) {
         setError('All chapters must have both title and content');
         setLoading(false);
         return;
       }
-
+  
       const submitData = new FormData();
       Object.keys(formData).forEach(key => {
         if (key !== 'chapters') {
@@ -226,41 +270,43 @@ const BookUpload = () => {
         }
       });
       submitData.append('chapters', JSON.stringify(formData.chapters));
-
+  
       const token = localStorage.getItem('token');
       if (!token) {
         throw new Error('Authentication token not found. Please log in again.');
       }
-
-      console.log('Token being sent:', token);
-
-      const response = await fetch(`${backendUrl}/api/upload-book`, {
-        method: 'POST',
+  
+      const url = bookId ? `${backendUrl}/api/upload-book/${bookId}` : `${backendUrl}/api/upload-book`;
+      const method = bookId ? 'PUT' : 'POST';
+  
+      const response = await fetch(url, {
+        method,
         headers: {
           'Authorization': `Bearer ${token}`
         },
         body: submitData
       });
-
-      console.log('Response status:', response.status);
-      console.log('Response headers:', Object.fromEntries(response.headers));
-
+  
       const contentType = response.headers.get('content-type');
       if (!contentType || !contentType.includes('application/json')) {
         throw new Error(`Server error: ${response.status} ${response.statusText}`);
       }
-
+  
       const data = await response.json();
       if (!response.ok) {
-        throw new Error(data.message || 'Failed to upload book');
+        throw new Error(data.message || 'Failed to save book');
       }
-
+  
       setSuccess(true);
-      resetForm();
-
+      if (!bookId) {
+        resetForm(); // Reset form for new books
+      } else {
+        setFormData({ ...data, coverImage: data.coverImage || null }); // Update form with server response
+        setImagePreview(data.coverImage || null);
+      }
     } catch (err) {
       console.error('Submit error:', err);
-      setError(err.message || 'An error occurred while uploading the book');
+      setError(err.message || 'An error occurred while saving the book');
     } finally {
       setLoading(false);
     }
@@ -292,17 +338,16 @@ const BookUpload = () => {
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="flex items-center justify-between gap-2  ">
           <CardTitle className="flex items-center gap-2 justify-between group hover:cursor-pointer">
-            <div className='flex  items-center gap-2'>
-              <div className='flex items-center gap-2 border border-gray-300 rounded-md px-2 py-1 cursor-pointer' onClick={() => navigate(-1)} >
-              <ArrowLeft className="w-5 h-5" />
+            <div className='flex items-center gap-2'>
+              <div className='flex items-center gap-2 border border-gray-300 rounded-md px-2 py-1 cursor-pointer' onClick={() => navigate(-1)}>
+                <ArrowLeft className="w-5 h-5" />
                 <span>Back</span>
               </div>
               <div className='ml-[40%] flex items-center gap-2'>
                 <Save className="w-8 h-6 text-gray-400 group-hover:fill-gray-600" />
-                <span className=' text-2xl'>Create New Book</span>
+                <span className='text-2xl'>{bookId ? 'Edit Book' : 'Create New Book'}</span>
               </div>
             </div>
-
           </CardTitle>
 
         </CardHeader>
@@ -329,7 +374,7 @@ const BookUpload = () => {
                 ) : (
                   <>
                     <ImageIcon className="w-12 h-12 text-gray-400" />
-                    <label className="cursor-pointer text-blue-500 hover:text-blue-600">
+                    <label className="cursor-pointer text-teal-500 hover:text-teal-600">
                       Choose cover image
                       <input
                         type="file"
@@ -430,7 +475,7 @@ const BookUpload = () => {
                 <button
                   type="button"
                   onClick={addChapter}
-                  className="flex items-center gap-2 px-4 py-2 text-blue-500 hover:bg-blue-50 rounded"
+                  className="flex items-center gap-2 px-4 py-2 text-teal-500 hover:bg-teal-50 rounded"
                 >
                   <Plus className="w-4 h-4" />
                   Add Chapter
@@ -486,7 +531,7 @@ const BookUpload = () => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex items-center gap-2 px-6 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-blue-300"
+                className="flex items-center gap-2 px-6 py-2 bg-teal-800 text-white rounded hover:bg-teal-900 disabled:bg-teal-300"
               >
                 {loading ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

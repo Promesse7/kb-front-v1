@@ -150,7 +150,11 @@ const App = () => {
             <BookUpload />
           </ProtectedRoute>
         } />
-        
+        <Route path="/edit/:bookId" element={
+          <ProtectedRoute>
+            <BookUpload />
+          </ProtectedRoute>
+        } />
         <Route path="/book-reader" element={
           <ProtectedRoute>
             <BookReader />
@@ -169,7 +173,7 @@ const App = () => {
         } />
         
         {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route path="*" element={<Navigate to="/auth" />} />
       </Routes>
     </Router>
   );

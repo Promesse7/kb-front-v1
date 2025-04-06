@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState,useEffect } from 'react';
+import axios from 'axios';
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -11,17 +12,19 @@ import {
   Minimize,
   Bookmark
 } from 'lucide-react';
-import  Card from './ui/Card';
+import Card from './ui/Card';
 
-const BookReader = ({ bookId }) => {
-  const [bookContent, setBookContent] = useState('');
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [fontSize, setFontSize] = useState(16);
+const BookReader = ({ book }) => {  
+
+  const [currentPage, setCurrentPage] = useState(1); // Page 1 corresponds to chapter[0]
+  const [fontSize, setFontSize] = useState(18);
   const [theme, setTheme] = useState('light');
+  const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [bookmark, setBookmark] = useState(null);
+
+
+ 
 
   // Theme configurations
   const themes = {
@@ -37,28 +40,16 @@ const BookReader = ({ bookId }) => {
     },
     dark: {
       background: 'bg-gray-900',
-      text: 'text-gray-100',
-      paper: 'bg-gray-800'
+      text: 'text-gray-900',
+      paper: 'bg-gray-850'
     }
   };
 
-  useEffect(() => {
-    fetchBookContent();
-  }, [bookId, currentPage]);
+  // Get the total number of chapters
+  const totalChapters = book.chapters.length;
 
-  const fetchBookContent = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch(`/api/books/${bookId}/content?page=${currentPage}`);
-      if (!response.ok) throw new Error('Failed to fetch book content');
-      const data = await response.json();
-      setBookContent(data.content);
-    } catch (err) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Get the content of the current chapter
+  const currentChapter = book.chapters[currentPage - 1]; // Subtract 1 because currentPage is 1-based
 
   const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -75,18 +66,13 @@ const BookReader = ({ bookId }) => {
       setBookmark(null);
     } else {
       setBookmark(currentPage);
-      // Save bookmark to backend
-      fetch(`/api/books/${bookId}/bookmark`, {
-        method: 'POST',
-        body: JSON.stringify({ page: currentPage }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      // Optionally, you could save this to local storage or a backend if needed
     }
   };
 
   const changePage = (direction) => {
     const newPage = currentPage + direction;
-    if (newPage > 0) {
+    if (newPage > 0 && newPage <= totalChapters) {
       setCurrentPage(newPage);
     }
   };
@@ -112,10 +98,11 @@ const BookReader = ({ bookId }) => {
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
-            <span className={`${themes[theme].text}`}>Page {currentPage}</span>
+            <span className={`${themes[theme].text}`}>Chapter {currentPage} of {totalChapters}</span>
             <button
               onClick={() => changePage(1)}
               className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700"
+              disabled={currentPage === totalChapters}
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -163,7 +150,7 @@ const BookReader = ({ bookId }) => {
             <button
               onClick={toggleBookmark}
               className={`p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 
-                ${bookmark === currentPage ? 'text-blue-500' : ''}`}
+                ${bookmark === currentPage ? 'text-teal-500' : ''}`}
             >
               <Bookmark className="w-4 h-4" />
             </button>
@@ -183,42 +170,36 @@ const BookReader = ({ bookId }) => {
       </div>
 
       {/* Reading Area */}
-      <div className="pt-20 pb-16 px-4">
-        <Card className={`max-w-4xl mx-auto p-8 ${themes[theme].paper} shadow-lg`}>
-          {loading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-              <div className="h-4 bg-gray-200 rounded"></div>
-              <div className="h-4 bg-gray-200 rounded w-5/6"></div>
-            </div>
-          ) : error ? (
-            <div className="text-red-500 text-center">{error}</div>
-          ) : (
-            <div
-              className={`prose max-w-none ${themes[theme].text}`}
-              style={{ fontSize: `${fontSize}px` }}
-            >
-              {bookContent}
-            </div>
-          )}
+      <div className="pt-20 pb-16 px-4 h-screen w-[80vw] mx-auto overflow-y-auto custom-scrollbar">
+        <Card className={`max-w-4xl mx-auto p-14 m-4 ${themes[theme].paper} shadow-lg`}>
+          <h2 className={`${themes[theme].text} text-xl text-center mt-2 font-bold mb-4`}>
+            {currentChapter.title}
+          </h2>
+          <div
+            className={`mx-8 text-left prose max-w-none ${themes[theme].text}`}
+            style={{ fontSize: `${fontSize}px` }}
+          >
+            {currentChapter.content}
+          </div>
         </Card>
       </div>
 
       {/* Bottom Controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-opacity-90 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto p-4 flex justify-between">
+        <div className="max-w-4xl mx-auto p-2 flex justify-between">
           <button
             onClick={() => changePage(-1)}
-            className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+            className="px-4 py-2 rounded bg-teal-800 text-white hover:bg-teal-900"
             disabled={currentPage === 1}
           >
-            Previous Page
+            Previous Chapter
           </button>
           <button
             onClick={() => changePage(1)}
-            className="px-4 py-2 rounded bg-blue-500 text-white hover:bg-blue-600"
+            className="px-4 py-2 rounded bg-teal-800 text-white hover:bg-teal-900"
+            disabled={currentPage === totalChapters}
           >
-            Next Page
+            Next Chapter
           </button>
         </div>
       </div>

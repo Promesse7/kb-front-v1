@@ -28,7 +28,7 @@ const LandingPage = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto px-6 py-12 md:py-24 flex flex-col md:flex-row items-center">
+      <section className="container mx-auto h-[90vh] px-6 py-12 md:py-24 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-12 md:mb-0">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-6">
             Discover a World of Stories at Your Fingertips
@@ -37,10 +37,10 @@ const LandingPage = () => {
             Access thousands of books and novels. Read anywhere, anytime, on any device. Start your reading journey today!
           </p>
           <div className="flex flex-col sm:flex-row gap-4">
-            <button className="px-6 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition flex items-center">
+            <button className="px-6 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition flex items-center" onClick={() => navigate('/auth')}>
               Get Started <ChevronRight className="ml-2 h-5 w-5" />
             </button>
-            <button className="px-6 py-3 border border-teal-600 text-teal-600 rounded-md hover:bg-teal-50 transition">
+            <button className="px-6 py-3 border border-teal-600 text-teal-600 rounded-md hover:bg-teal-50 transition" onClick={() => navigate('/auth')}>
               Explore Library
             </button>
           </div>

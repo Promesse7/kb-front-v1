@@ -2,16 +2,9 @@ import { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import {
   BookOpen, Library, ListPlus, FolderPlus, BookMarked,
-  Edit, Trash2, Plus, Check, Star, Search, Filter,
-  Share2, Download, Upload, BookmarkPlus, Settings
+  Edit, Trash2, Plus, Check, Star, Search, Filter,Tag,
+  Share2, Download, Upload, BookmarkPlus, Settings, X
 } from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "./ui/dialog";
 
 const BookLibrary = () => {
   const [books, setBooks] = useState([]);
@@ -26,9 +19,28 @@ const BookLibrary = () => {
   const [selectedBook, setSelectedBook] = useState(null);
   const [viewMode, setViewMode] = useState('details'); // 'details' or 'reading'
   const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
   const backendUrl = process.env.NODE_ENV === "development"
     ? "http://localhost:5000"
     : 'https://kb-library.onrender.com';
+
+  const [newTag, setNewTag] = useState('');
+  const [isAddingTag, setIsAddingTag] = useState(false);
+
+  const addTag = () => {
+    if (newTag.trim()) {
+      const updatedTags = [...(selectedBook.tags || []), newTag.trim()];
+      updateBook(selectedBook._id, { tags: updatedTags });
+      setNewTag('');
+    }
+    setIsAddingTag(false);
+  };
+
+  const removeTag = (tagToRemove) => {
+    const updatedTags = (selectedBook.tags || []).filter(tag => tag !== tagToRemove);
+    updateBook(selectedBook._id, { tags: updatedTags });
+  };
+
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -104,12 +116,89 @@ const BookLibrary = () => {
     }
   };
 
+  // Filter books based on search query and filters
+  const filteredBooks = books.filter(book => {
+    // Search query filter
+    const matchesSearch = book.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      book.author.toLowerCase().includes(searchQuery.toLowerCase());
+
+    // Status filter
+    const matchesStatus = selectedFilters.status.length === 0 ||
+      selectedFilters.status.includes(book.status);
+
+    // Favorite filter
+    const matchesFavorite = !selectedFilters.favorite || book.favorite;
+
+    return matchesSearch && matchesStatus && matchesFavorite;
+  });
+
+  const Modal = ({
+    children,
+    title,
+    onClose,
+    fullScreen = false,
+    className = ""
+  }) => {
+    // Handle escape key press to close modal
+    useEffect(() => {
+      const handleEscapeKey = (e) => {
+        if (e.key === 'Escape') onClose();
+      };
+
+      document.addEventListener('keydown', handleEscapeKey);
+      return () => document.removeEventListener('keydown', handleEscapeKey);
+    }, [onClose]);
+
+    // Prevent scrolling on the body when modal is open
+    useEffect(() => {
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = 'auto';
+      };
+    }, []);
+
+    return (
+      <div
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm h-full flex items-center justify-center p-4 z-50"
+        onClick={(e) => {
+          if (e.target === e.currentTarget) onClose();
+        }}
+        style={{ transform: 'translateY(-24px)' }}
+      >
+        <div
+          className={`
+            bg-gray-800 
+            rounded-xl shadow-2xl 
+            border border-gray-200 dark:border-gray-700
+            ${fullScreen ? 'w-full h-full' : 'w-full max-w-4xl max-h-[85vh]'} 
+            overflow-hidden
+            transform transition-all duration-300 ease-out
+            ${className}
+          `}
+
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex justify-between items-center p-4 border-b border-gray-700 bg-gray-850">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">{title}</h2>
+            <button
+              onClick={onClose}
+              className="p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-full transition-colors duration-200 flex items-center justify-center"
+              aria-label="Close modal"
+            >
+              <X className="w-5 h-5 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+          <div className="overflow-y-auto custom-scrollbar" style={{ maxHeight: fullScreen ? 'calc(100% - 4rem)' : '80vh' }}>
+            {children}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   const ReadingView = ({ book }) => {
     const [currentChapter, setCurrentChapter] = useState(0);
     const contentRef = useRef(null);
-
-
-
 
     // Handle Keyboard Navigation
     useEffect(() => {
@@ -157,65 +246,262 @@ const BookLibrary = () => {
         </div>
       );
     }
+
     return (
-      <div className="w-full max-w-5xl  p-6 bg-gray-100 dark:bg-gray-900 rounded-lg shadow-lg min-h-screen md:min-h-[80vh]">
-      {/* Header Section */}
-      <div className="flex  max-w-2xl mx-auto justify-between items-center mb-6">
-        <h2 className="text-3xl md:text-4xl font-bold text-gray-800 dark:text-gray-200 truncate">
-          {book.title}
-        </h2>
-        <div className="flex gap-3">
+      <div className="p-6 pt-0 bg-gray-100 dark:bg-gray-900 min-h-[70vh]">
+        {/* Header Section */}
+        <div className="flex max-w-2xl mx-auto justify-between items-center m-6">
+          <h2 className="text-2xl md:text-3xl font-bold text-gray-200 truncate">
+            {book.title}
+          </h2>
+          <div className="flex gap-3">
+            <button
+              onClick={prevChapter}
+              disabled={currentChapter === 0}
+              className="px-3 md:px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={nextChapter}
+              disabled={currentChapter === book.chapters.length - 1}
+              className="px-3 md:px-4 py-2 bg-gray-300 dark:bg-gray-700 text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            >
+              Next
+            </button>
+          </div>
+        </div>
+
+        {/* Chapter Content */}
+        <div
+          ref={contentRef}
+          className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-md w-full max-w-4xl mx-auto lg:max-h-[50vh] max-h-[68vh] overflow-y-auto transition-all custom-scrollbar"
+        >
+          <h3 className="text-xl md:text-2xl font-medium text-gray-700 dark:text-gray-300 mb-4 md:mb-6">
+            {book.chapters[currentChapter].title}
+          </h3>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-base md:text-lg">
+            {book.chapters[currentChapter].content}
+          </p>
+        </div>
+
+        {/* Reading Progress Bar */}
+        <div className="w-full max-w-4xl mx-auto bg-gray-200 dark:bg-gray-700 h-2 rounded-full my-6">
+          <div
+            className="h-2 bg-teal-500 rounded-full transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          ></div>
+        </div>
+
+        {/* Footer */}
+        <div className="flex w-full max-w-4xl mx-auto justify-between items-center text-sm md:text-base text-gray-600 dark:text-gray-400">
+          <span>Chapter {currentChapter + 1} of {book.chapters.length}</span>
           <button
-            onClick={prevChapter}
-            disabled={currentChapter === 0}
-            className="px-4 md:px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
+            onClick={() => setViewMode('details')}
+            className="px-4 md:px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
           >
-            Previous
-          </button>
-          <button
-            onClick={nextChapter}
-            disabled={currentChapter === book.chapters.length - 1}
-            className="px-4 md:px-6 py-2 bg-gray-300 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-400 dark:hover:bg-gray-600 disabled:opacity-50 transition-colors"
-          >
-            Next
+            Back to Details
           </button>
         </div>
       </div>
+    );
+  };
 
-      {/* Chapter Content */}
-      <div
-        ref={contentRef}
-        className="bg-white dark:bg-gray-800 p-6 md:p-8 rounded-lg shadow-md w-full max-w-4xl mx-auto max-h-[70vh] md:max-h-[60vh] overflow-y-auto transition-all scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600"
+  const renderBookDetails = () => (
+    <div className="p-4 space-y-4">
+      <div className="flex flex-col md:flex-row gap-4">
+        <img
+          src={selectedBook.coverImage}
+          alt={selectedBook.title}
+          className="w-32 h-40 object-cover rounded"
+        />
+        <div className='text-gray-200'>
+          <h2 className="text-xl font-bold">{selectedBook.title}</h2>
+          <p className="text-gray-600">{selectedBook.author}</p>
+          <div className="flex gap-1 mt-2">
+            {Array(5).fill(0).map((_, i) => (
+              <Star
+                key={i}
+                className={`w-5 h-5 ${i < (selectedBook.rating?.averageRating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
+                onClick={() => updateBook(selectedBook._id, { rating: { averageRating: i + 1, totalRatings: 1 } })}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-6">
+      {/* Notes Section */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+            <Edit className="w-4 h-4" />
+            Notes
+          </h3>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {selectedBook.notes?.length || 0} characters
+          </div>
+        </div>
+        <textarea
+          className="w-full p-3 border border-gray-600 rounded-lg 
+                    bg-gray-700 text-gray-800 dark:text-gray-200
+                    focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                    transition-colors duration-200 h-20 resize custom-scrollbar "
+          value={selectedBook.notes || ''}
+          onChange={(e) => updateBook(selectedBook._id, { notes: e.target.value })}
+          placeholder="Add your thoughts, favorite quotes, or reading insights..."
+          rows={5}
+        />
+      </div>
+
+      {/* Tags Section */}
+      <div className="space-y-3 flex justify-around">
+    
+
+        <div className="flex flex-wrap gap-2 min-h-10">
+          {(selectedBook.tags || []).map(tag => (
+            <span 
+              key={tag}
+              className="px-3 py-1.5 bg-gradient-to-r from-blue-50 to-blue-100 
+                      dark:from-blue-900/30 dark:to-blue-800/30
+                      text-blue-700 dark:text-blue-300 
+                      rounded-full text-sm font-medium flex items-center gap-1
+                      border border-blue-200 dark:border-blue-800/50
+                      shadow-sm hover:shadow transition-all duration-200"
+            >
+              {tag}
+              <button 
+                onClick={() => removeTag(tag)}
+                className="w-4 h-4 inline-flex items-center justify-center rounded-full 
+                        hover:bg-blue-200 dark:hover:bg-blue-700 transition-colors"
+              >
+                <X className="w-3 h-3" />
+              </button>
+            </span>
+          ))}
+
+          {isAddingTag ? (
+            <div className="flex items-center">
+              <input
+                type="text"
+                className="px-3 py-1 text-sm border border-blue-300 dark:border-blue-700 
+                        rounded-l-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="New tag..."
+                value={newTag}
+                onChange={(e) => setNewTag(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && addTag()}
+                autoFocus
+              />
+              <button 
+                onClick={addTag}
+                className="px-3 py-1 bg-blue-500 hover:bg-blue-600 
+                        text-white rounded-r-full text-sm transition-colors"
+              >
+                Add
+              </button>
+            </div>
+          ) : (
+            <button 
+              onClick={() => setIsAddingTag(true)}
+              className="px-3 py-1.5 border border-dashed border-gray-300 dark:border-gray-600
+                      hover:border-blue-400 dark:hover:border-blue-500
+                      rounded-full text-sm flex items-center gap-1
+                      text-gray-600 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
+                      transition-colors duration-200"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add Tag
+            </button>
+          )}
+        </div>
+
+
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-medium text-gray-700 dark:text-gray-200 flex items-center gap-2">
+            <Tag className="w-4 h-4" />
+            Tags
+          </h3>
+          <div className="text-xs text-gray-500 dark:text-gray-400">
+            {(selectedBook.tags || []).length} tags
+          </div>
+        </div>
+      </div>
+    </div>
+      <button
+        onClick={() => setViewMode('reading')}
+        className="mt-4  mx-[25vw] px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
       >
-        <h3 className="text-xl md:text-2xl font-medium text-gray-700 dark:text-gray-300 mb-4 md:mb-6">
-          {book.chapters[currentChapter].title}
-        </h3>
-        <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed text-base md:text-lg">
-          {book.chapters[currentChapter].content}
-        </p>
-      </div>
+        Read Book
+      </button>
+    </div>
+  );
 
-      {/* Reading Progress Bar */}
-      <div className="w-full max-w-4xl mx-auto bg-gray-200 dark:bg-gray-700 h-2 rounded-full my-6">
-        <div
-          className="h-2 bg-teal-500 rounded-full transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        ></div>
+  const renderFilterPanel = () => (
+    <div className="space-y-4 p-4">
+      <div>
+        <h3 className="font-medium mb-2">Status</h3>
+        <div className="space-x-2">
+          {['Reading', 'Completed', 'Want to Read'].map(status => (
+            <button
+              key={status}
+              className={`px-3 py-1 rounded-full text-sm ${selectedFilters.status.includes(status)
+                ? 'bg-teal-500 text-white'
+                : 'bg-gray-100'
+                }`}
+              onClick={() => {
+                setSelectedFilters(prev => ({
+                  ...prev,
+                  status: prev.status.includes(status)
+                    ? prev.status.filter(s => s !== status)
+                    : [...prev.status, status]
+                }));
+              }}
+            >
+              {status}
+            </button>
+          ))}
+        </div>
       </div>
-
-      {/* Footer */}
-      <div className="flex w-full max-w-4xl mx-auto justify-between items-center text-sm md:text-base text-gray-600 dark:text-gray-400">
-        <span>Chapter {currentChapter + 1} of {book.chapters.length}</span>
+      <div>
+        <h3 className="font-medium mb-2">Favorites</h3>
         <button
-          onClick={() => setViewMode('details')}
-          className="px-4 md:px-6 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600 transition-colors"
+          className={`px-3 py-1 rounded-full text-sm ${selectedFilters.favorite
+            ? 'bg-teal-500 text-white'
+            : 'bg-gray-100'
+            }`}
+          onClick={() => {
+            setSelectedFilters(prev => ({
+              ...prev,
+              favorite: !prev.favorite
+            }));
+          }}
         >
-          Back to Details
+          <div className="flex items-center gap-1">
+            <Star className={`w-4 h-4 ${selectedFilters.favorite ? 'fill-white' : ''}`} />
+            <span>Favorites Only</span>
+          </div>
+        </button>
+      </div>
+      <div className="pt-4 flex justify-end">
+        <button
+          onClick={() => setSelectedFilters({
+            status: [],
+            shelf: [],
+            rating: [],
+            favorite: false
+          })}
+          className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded mr-2"
+        >
+          Reset Filters
+        </button>
+        <button
+          onClick={() => setShowFilters(false)}
+          className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
+        >
+          Apply Filters
         </button>
       </div>
     </div>
-    );
-  };
+  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -233,45 +519,13 @@ const BookLibrary = () => {
             />
           </div>
         </div>
-        <Dialog>
-          <DialogTrigger asChild>
-            <button className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50">
-              <Filter className="w-5 h-5" />
-              Filters
-            </button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Filter Books</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4 p-4">
-              <div>
-                <h3 className="font-medium mb-2">Status</h3>
-                <div className="space-x-2">
-                  {['Reading', 'Completed', 'Want to Read'].map(status => (
-                    <button
-                      key={status}
-                      className={`px-3 py-1 rounded-full text-sm ${selectedFilters.status.includes(status)
-                        ? 'bg-teal-500 text-white'
-                        : 'bg-gray-100'
-                        }`}
-                      onClick={() => {
-                        setSelectedFilters(prev => ({
-                          ...prev,
-                          status: prev.status.includes(status)
-                            ? prev.status.filter(s => s !== status)
-                            : [...prev.status, status]
-                        }));
-                      }}
-                    >
-                      {status}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        <button
+          onClick={() => setShowFilters(true)}
+          className="flex items-center gap-2 px-4 py-2 border rounded-lg hover:bg-gray-50"
+        >
+          <Filter className="w-5 h-5" />
+          Filters
+        </button>
         <button
           onClick={() => setIsAddingBook(true)}
           className="flex items-center gap-2 px-4 py-2 bg-teal-500 text-white rounded-lg hover:bg-teal-600"
@@ -283,7 +537,7 @@ const BookLibrary = () => {
 
       {/* Loading Spinner */}
       {loading && (
-        <div className="flex justify-center items-center min-h-screen bg-gray-100">
+        <div className="flex justify-center  items-center min-h-screen bg-gray-100">
           <div className="relative flex flex-col items-center">
             {/* Book Container */}
             <div className="w-40 h-28 bg-white rounded-lg shadow-lg transform perspective-1000">
@@ -309,11 +563,11 @@ const BookLibrary = () => {
       )}
 
       {/* Book Grid */}
-      {!loading && books.length === 0 && (
-        <div className="text-center text-gray-500">No books found.</div>
+      {!loading && filteredBooks.length === 0 && (
+        <div className="text-center text-gray-500 py-8">No books found. Try adjusting your filters.</div>
       )}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {books.map(book => (
+        {filteredBooks.map(book => (
           <div key={book._id} className="border rounded-lg p-4 hover:shadow-md transition-shadow">
             <div className="relative">
               <img
@@ -326,8 +580,7 @@ const BookLibrary = () => {
                 className="absolute top-2 right-2 p-1 bg-white rounded-full shadow"
               >
                 <Star
-                  className={`w-5 h-5 ${book.favorite ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                    }`}
+                  className={`w-5 h-5 ${book.favorite ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'}`}
                 />
               </button>
             </div>
@@ -346,7 +599,10 @@ const BookLibrary = () => {
             )}
             <div className="flex gap-2 mt-2">
               <button
-                onClick={() => setSelectedBook(book)}
+                onClick={() => {
+                  setSelectedBook(book);
+                  setViewMode('details');
+                }}
                 className="flex-1 px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
               >
                 Details
@@ -362,69 +618,76 @@ const BookLibrary = () => {
         ))}
       </div>
 
-      {/* Book Details Dialog */}
-      <Dialog open={selectedBook !== null} onOpenChange={() => setSelectedBook(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{viewMode === 'details' ? 'Book Details' : 'Reading View'}</DialogTitle>
-          </DialogHeader>
-          {selectedBook && (
-            viewMode === 'details' ? (
-              <div className="p-4 space-y-4">
-                <div className="flex gap-4">
-                  <img
-                    src={selectedBook.coverImage}
-                    alt={selectedBook.title}
-                    className="w-32 h-48 object-cover rounded"
-                  />
-                  <div>
-                    <h2 className="text-xl font-bold">{selectedBook.title}</h2>
-                    <p className="text-gray-600">{selectedBook.author}</p>
-                    <div className="flex gap-1 mt-2">
-                      {Array(5).fill(0).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`w-5 h-5 ${i < (selectedBook.rating?.averageRating || 0) ? 'text-yellow-400 fill-yellow-400' : 'text-gray-300'
-                            }`}
-                          onClick={() => updateBook(selectedBook._id, { rating: { averageRating: i + 1, totalRatings: 1 } })}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="font-medium">Notes</h3>
-                  <textarea
-                    className="w-full p-2 border rounded"
-                    value={selectedBook.notes || ''}
-                    onChange={(e) => updateBook(selectedBook._id, { notes: e.target.value })}
-                    placeholder="Add your notes..."
-                    rows={4}
-                  />
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {(selectedBook.tags || []).map(tag => (
-                    <span key={tag} className="px-2 py-1 bg-gray-100 rounded-full text-sm">
-                      {tag}
-                    </span>
-                  ))}
-                  <button className="px-2 py-1 border rounded-full text-sm">
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
+      {/* Modals */}
+      {showFilters && (
+        <Modal title="Filter Books" onClose={() => setShowFilters(false)}>
+          {renderFilterPanel()}
+        </Modal>
+      )}
+
+      {selectedBook && viewMode === 'details' && (
+        <Modal title="Book Details" onClose={() => setSelectedBook(null)}>
+          {renderBookDetails()}
+        </Modal>
+      )}
+
+      {selectedBook && viewMode === 'reading' && (
+        <Modal
+          title={`Reading: ${selectedBook.title}`}
+          onClose={() => {
+            setViewMode('details');
+          }}
+          fullScreen={true}
+          className="bg-gray-50 dark:bg-gray-900"
+        >
+          <ReadingView book={selectedBook} />
+        </Modal>
+      )}
+
+      {isAddingBook && (
+        <Modal title="Add New Book" onClose={() => setIsAddingBook(false)}>
+          <div className="p-4">
+            {/* Add Book Form - Basic Implementation */}
+            <form className="space-y-4">
+              <div>
+                <label className="block mb-1">Title</label>
+                <input type="text" className="w-full p-2 border rounded" placeholder="Book title" />
+              </div>
+              <div>
+                <label className="block mb-1">Author</label>
+                <input type="text" className="w-full p-2 border rounded" placeholder="Author name" />
+              </div>
+              <div>
+                <label className="block mb-1">Cover Image URL</label>
+                <input type="text" className="w-full p-2 border rounded" placeholder="https://..." />
+              </div>
+              <div>
+                <label className="block mb-1">Status</label>
+                <select className="w-full p-2 border rounded">
+                  <option>Want to Read</option>
+                  <option>Reading</option>
+                  <option>Completed</option>
+                </select>
+              </div>
+              <div className="pt-4 flex justify-end">
                 <button
-                  onClick={() => setViewMode('reading')}
-                  className="mt-4 px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
+                  type="button"
+                  onClick={() => setIsAddingBook(false)}
+                  className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded mr-2"
                 >
-                  Read Book
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  className="px-4 py-2 bg-teal-500 text-white rounded hover:bg-teal-600"
+                >
+                  Add Book
                 </button>
               </div>
-            ) : (
-              <ReadingView book={selectedBook} />
-            )
-          )}
-        </DialogContent>
-      </Dialog>
+            </form>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 };
