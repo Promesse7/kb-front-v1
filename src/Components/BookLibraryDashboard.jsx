@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import io from 'socket.io-client';
 import { BrowserRouter as Router, Routes, Route, Link } from "react-router-dom";
 import {
   Search, Settings, HomeIcon, LibraryIcon, BellIcon,
@@ -37,7 +38,10 @@ const DashBoard = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
   const [selectedTab, setSelectedTab] = useState("discover");
   const [selectedBook, setSelectedBook] = useState(null);
-
+  const [notifications, setNotifications] = useState([]);
+  const [hasUnreadNotifications, setHasUnreadNotifications] = useState(false);
+  const [showNotifications, setShowNotifications] = useState(false);
+  const socketRef = useRef(null);
 
   useEffect(() => {
     const checkAuthStatus = async () => {
@@ -93,7 +97,8 @@ const DashBoard = () => {
           }
         });
 
-        setBooks(response.data);
+        setBooks(response.data.books); 
+
       } catch (error) {
         console.error('Error fetching books:', error);
       }
@@ -177,6 +182,50 @@ const DashBoard = () => {
 
     fetchUserData();
   }, [navigate]);
+
+// Connect to WebSocket in useEffect
+useEffect(() => {
+  const token = localStorage.getItem('token');
+  if (!token) return;
+  
+  // Create socket connection
+  socketRef.current = io(backendUrl, {
+    auth: {
+      token
+    }
+  });
+  
+  // Listen for new notifications
+  socketRef.current.on('notification', (notification) => {
+    setNotifications(prev => [notification, ...prev]);
+    setHasUnreadNotifications(true);
+  });
+  
+  // Clean up on unmount
+  return () => {
+    if (socketRef.current) {
+      socketRef.current.disconnect();
+    }
+  };
+}, []);
+
+// Add this function to mark notifications as read
+const markNotificationsAsRead = async () => {
+  try {
+    await axios.put(
+      `${backendUrl}/api/notifications/read`, 
+      {}, 
+      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
+    );
+    
+    setNotifications(prev => 
+      prev.map(notification => ({ ...notification, isRead: true }))
+    );
+    setHasUnreadNotifications(false);
+  } catch (error) {
+    console.error('Error marking notifications as read:', error);
+  }
+};
 
   if (errorMessage) {
     return <p style={{ color: 'red' }}>{errorMessage}</p>; // Display an error message
@@ -471,7 +520,46 @@ const DashBoard = () => {
                 <span className="font-medium">
                   {user?.name || 'User'}
                 </span>
-                <BellIcon className="w-6 h-6" />
+                {/* Notification Bell */}
+<div className="relative">
+  <button
+    onClick={() => {
+      setShowNotifications(!showNotifications);
+      if (hasUnreadNotifications) {
+        markNotificationsAsRead();
+      }
+    }}
+    className="p-2 relative"
+  >
+    <BellIcon className="w-6 h-6 text-gray-600" />
+    {hasUnreadNotifications && (
+      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+    )}
+  </button>
+  
+  {showNotifications && (
+    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-20 border border-gray-200">
+      <div className="p-3 border-b border-gray-200 font-medium">Notifications</div>
+      <div className="max-h-96 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <div className="p-4 text-center text-gray-500">No notifications</div>
+        ) : (
+          notifications.map((notification, index) => (
+            <div 
+              key={index} 
+              className={`p-3 border-b border-gray-100 ${notification.isRead ? '' : 'bg-blue-50'}`}
+            >
+              <p className="text-sm">{notification.message}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                {new Date(notification.createdAt).toLocaleString()}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  )}
+</div>
               </div>
             </Link>
           </div>

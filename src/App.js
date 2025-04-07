@@ -101,6 +101,8 @@ const App = () => {
       <Routes>
          {/* Landing Page route */}
          <Route path="/" element={<LandingPage />} />
+         <Route path="/auth" element={<AuthSystem />} />
+
 
         {/* Protected Routes */}
         <Route path="/dashboard" element={
@@ -168,9 +170,7 @@ const App = () => {
         } />
 
         {/* Public Route */}
-        <Route path="/auth" element={
-          isAuthenticated ? <Navigate to="/" /> : <AuthSystem />
-        } />
+        
         
         {/* Catch all route */}
         <Route path="*" element={<Navigate to="/auth" />} />
