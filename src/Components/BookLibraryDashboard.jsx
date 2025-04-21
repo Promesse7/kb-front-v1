@@ -184,30 +184,7 @@ const DashBoard = () => {
   }, [navigate]);
 
 // Connect to WebSocket in useEffect
-useEffect(() => {
-  const token = localStorage.getItem('token');
-  if (!token) return;
-  
-  // Create socket connection
-  socketRef.current = io(backendUrl, {
-    auth: {
-      token
-    }
-  });
-  
-  // Listen for new notifications
-  socketRef.current.on('notification', (notification) => {
-    setNotifications(prev => [notification, ...prev]);
-    setHasUnreadNotifications(true);
-  });
-  
-  // Clean up on unmount
-  return () => {
-    if (socketRef.current) {
-      socketRef.current.disconnect();
-    }
-  };
-}, []);
+
 
 // Add this function to mark notifications as read
 const markNotificationsAsRead = async () => {
