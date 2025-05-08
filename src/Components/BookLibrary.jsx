@@ -65,31 +65,38 @@ const BookLibrary = () => {
   };
 
   const likeBook = async (id) => {
+    // Optimistically update the UI first
+    setBooks(prev => prev.map(book => {
+      if (book._id === id) {
+        const alreadyLiked = book.likes?.includes(currentUserId);
+        const updatedLikes = alreadyLiked
+          ? book.likes.filter(uid => uid !== currentUserId)
+          : [...(book.likes || []), currentUserId];
+        return { ...book, likes: updatedLikes };
+      }
+      return book;
+    }));
+  
     try {
       await axios.post(`${backendUrl}/api/books/${id}/like`, {}, {
         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
       });
-
-      // Update the book in the local state
+    } catch (error) {
+      console.error('Error liking book:', error);
+      // Optional: Revert the optimistic update on failure
       setBooks(prev => prev.map(book => {
         if (book._id === id) {
-          const userIndex = book.likes?.indexOf(currentUserId);
-          let updatedLikes = [...(book.likes || [])];
-
-          if (userIndex === -1) {
-            updatedLikes.push(currentUserId);
-          } else {
-            updatedLikes.splice(userIndex, 1);
-          }
-
-          return { ...book, likes: updatedLikes };
+          const alreadyLiked = book.likes?.includes(currentUserId);
+          const revertedLikes = alreadyLiked
+            ? [...book.likes, currentUserId]
+            : book.likes.filter(uid => uid !== currentUserId);
+          return { ...book, likes: revertedLikes };
         }
         return book;
       }));
-    } catch (error) {
-      console.error('Error liking book:', error);
     }
   };
+  
   useEffect(() => {
     const fetchBooks = async () => {
       try {
@@ -137,31 +144,48 @@ const BookLibrary = () => {
   };
 
   const toggleFavorite = async (id) => {
-    try {
-      const token = localStorage.getItem('token');
-      const decodedToken = JSON.parse(atob(token.split('.')[1]));
-      const userId = decodedToken.id;
-
-      await axios.post(`${backendUrl}/api/books/${id}/favorite`, {}, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-
-      setBooks(prev =>
-        prev.map(b =>
-          b._id === id
-            ? {
+    const token = localStorage.getItem('token');
+    const decodedToken = JSON.parse(atob(token.split('.')[1]));
+    const userId = decodedToken.id;
+  
+    // Optimistic update
+    setBooks(prev =>
+      prev.map(b =>
+        b._id === id
+          ? {
               ...b,
               favorites: b.favorites.includes(userId)
                 ? b.favorites.filter(fav => fav !== userId)
                 : [...b.favorites, userId]
             }
+          : b
+      )
+    );
+  
+    // Backend request
+    try {
+      await axios.post(`${backendUrl}/api/books/${id}/favorite`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+  
+      // Optional: Roll back if needed
+      setBooks(prev =>
+        prev.map(b =>
+          b._id === id
+            ? {
+                ...b,
+                favorites: b.favorites.includes(userId)
+                  ? [...b.favorites, userId] // Rollback removal
+                  : b.favorites.filter(fav => fav !== userId) // Rollback addition
+              }
             : b
         )
       );
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
     }
   };
+  
 
 
 
@@ -831,12 +855,7 @@ const BookLibrary = () => {
                 <span>{book.likes?.length || 0}</span>
               </button>
 
-              <button
-                onClick={() => toggleFavorite(book._id)}
-                className="flex items-center gap-1 px-2 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200"
-              >
-                <Star className={`w-4 h-4 ${book.favorite ? 'text-yellow-400 fill-yellow-400' : ''}`} />
-              </button>
+             
 
               <button
                 onClick={() => {

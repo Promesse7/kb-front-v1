@@ -271,7 +271,10 @@ const markNotificationsAsRead = async () => {
                 <h2 className="text-xl font-medium">Book Recommendations</h2>
                 <button className="text-sm text-gray-600">View all</button>
               </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex">
+              {loading ? (
+        <p>Loading...</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex">
                 {books.map((book, index) => (
                   <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
                     <img
@@ -303,6 +306,8 @@ const markNotificationsAsRead = async () => {
                   </div>
                 ))}
               </div>
+      )}
+              
             </div>
 
             {/* Categories */}
