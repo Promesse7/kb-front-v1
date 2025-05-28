@@ -6,29 +6,31 @@ import { useNavigate } from 'react-router-dom';
 const LandingPage = () => {
   const navigate = useNavigate();
   return (
-    <div className="min-h-screen bg-gradient-to-b from-teal-50 to-white font-sans">
+    <>
+    <div className="min-h-screen mx-4  bg-gradient-to-b from-teal-50 to-white font-sans">
       {/* Navigation */}
-      <nav className="container mx-auto px-6 py-4">
-        <div className="flex justify-between items-center">
+      <nav className="container mx-auto px-6 py-4 ">
+        <div className="flex justify-between px-4 py-4 items-center rounded-full bg-gray-300">
           <div className="flex items-center">
             <BookOpen className="h-8 w-8 text-teal-600" />
             <span className="ml-2 text-2xl font-bold text-teal-800">ReadVerse</span>
           </div>
           <div className="hidden md:flex space-x-8">
-            <a href="#" className="text-gray-700 hover:text-teal-600 transition">Home</a>
-            <a href="#books" className="text-gray-700 hover:text-teal-600 transition">Books</a>
-            <a href="#" className="text-gray-700 hover:text-teal-600 transition">Categories</a>
-            <a href="#" className="text-gray-700 hover:text-teal-600 transition">About</a>
+            <a href="#" className="font-semibold text-gray-700 hover:text-teal-600 transition">Home</a>
+            <a href="#" className="font-semibold text-gray-700 hover:text-teal-600 transition">About</a>
+            <a href="#books" className="font-semibold text-gray-700 hover:text-teal-600 transition">Books</a>
+            <a href="#" className="font-semibold text-gray-700 hover:text-teal-600 transition">Categories</a>
           </div>
           <div className="flex items-center space-x-4">
-            <button className="px-4 py-2 text-teal-600 hover:text-teal-800 transition" onClick={() => navigate('/auth')}>Sign In</button>
-            <button className="px-4 py-2 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition" onClick={() => navigate('/auth')}>Sign Up</button>
+            <button className="px-2 py-1 font-semibold text-teal-600 hover:text-teal-900 transition" onClick={() => navigate('/auth')}>Sign In</button>
+            <span className="text-gray-700 text-bold">|</span>
+            <button className="px-2 py-1 font-semibold  text-teal-600 hover:text-teal-900 transition" onClick={() => navigate('/auth')}>Sign Up</button>
           </div>
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="container mx-auto h-[90vh] px-6 py-12 md:py-24 flex flex-col md:flex-row items-center">
+      <section className="container mx-auto h-[90vh] px-8 py-12 md:py-18 flex flex-col md:flex-row items-center">
         <div className="md:w-1/2 mb-12 md:mb-0">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-6">
             Discover a World of Stories at Your Fingertips
@@ -119,7 +121,7 @@ const LandingPage = () => {
       </section>
 
       {/* Search Section */}
-      <section className="bg-teal-600 py-16">
+      <section className="bg-teal-600 py-16 rounded-md">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-white mb-6">Looking for something specific?</h2>
           <div className="max-w-2xl mx-auto relative">
@@ -176,8 +178,11 @@ const LandingPage = () => {
       </section>
 
       {/* Footer */}
-      <footer className="bg-gray-800 text-white py-12">
-        <div className="container mx-auto px-6">
+   
+    </div>
+    <div>
+       <footer className="bg-gray-800 text-white py-12">
+        <div className="container mx-0 px-6">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center mb-4">
@@ -227,6 +232,7 @@ const LandingPage = () => {
         </div>
       </footer>
     </div>
+    </>
   );
 };
 
