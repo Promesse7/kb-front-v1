@@ -85,24 +85,28 @@ const DashBoard = () => {
 
   useEffect(() => {
     const fetchBooks = async () => {
-      try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          throw new Error('Authentication token not found. Please log in again.');
-        }
+  try {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('Authentication token not found. Please log in again.');
+    }
 
-        const response = await axios.get(`${backendUrl}/api/books`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        setBooks(response.data.books); 
-
-      } catch (error) {
-        console.error('Error fetching books:', error);
+    const response = await axios.get(`${backendUrl}/api/books`, {
+      headers: {
+        'Authorization': `Bearer ${token}`
       }
-    };
+    });
+
+    // Safely handle the response
+    const booksData = response.data?.books || response.data || [];
+    setBooks(Array.isArray(booksData) ? booksData : []); 
+
+  } catch (error) {
+    console.error('Error fetching books:', error);
+    setBooks([]); // Set to empty array on error
+  }
+};
+
 
     fetchBooks();
   }, []);
@@ -271,42 +275,46 @@ const markNotificationsAsRead = async () => {
                 <h2 className="text-xl font-medium">Book Recommendations</h2>
                 <button className="text-sm text-gray-600">View all</button>
               </div>
-              {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 flex">
-                {books.map((book, index) => (
-                  <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
-                    <img
-                      src={book.coverImage}
-                      alt={book.title}
-                      className="w-full h-40 object-fit rounded-lg mb-4"
-                    />
-                    <h3 className="font-medium">{book.title}</h3>
-                    <p className="text-sm text-gray-600">{book.author}</p>
+         {loading ? (
+  <p>Loading...</p>
+) : (
+  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    {books && books.length > 0 ? (
+      books.map((book, index) => (
+        <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
+          <img
+            src={book.coverImage}
+            alt={book.title}
+            className="w-full h-40 object-cover rounded-lg mb-4"
+          />
+          <h3 className="font-medium">{book.title}</h3>
+          <p className="text-sm text-gray-600">{book.author}</p>
 
-                    <div className='flex  mx-auto justify-around '>
-                      <button
-                        onClick={() => handleReadBook(book)}
-                        className="mt-2 px-2 py-2 bg-teal-800 text-white rounded hover:bg-teal-900  block">
-                        Read Book
-                      </button>
+          <div className="flex justify-around mt-2">
+            <button
+              onClick={() => handleReadBook(book)}
+              className="px-2 py-2 bg-teal-800 text-white rounded hover:bg-teal-900"
+            >
+              Read Book
+            </button>
 
-                      {userRole === 'admin' && (
-                        <button
-                          onClick={() => handleEditBook(book._id)}
-                          className="mt-2 px-2 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-                        >
-                          Edit Book
-                        </button>
-                      )}
-                    </div>
+            {userRole === 'admin' && (
+              <button
+                onClick={() => handleEditBook(book._id)}
+                className="px-2 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
+              >
+                Edit Book
+              </button>
+            )}
+          </div>
+        </div>
+      ))
+    ) : (
+      <p>No books available.</p>
+    )}
+  </div>
+)}
 
-
-                  </div>
-                ))}
-              </div>
-      )}
               
             </div>
 
