@@ -410,7 +410,7 @@ const markNotificationsAsRead = async () => {
         <aside className={`w-full lg:w-64 bg-white p-6 space-y-6 ${isSidebarOpen ? 'block' : 'hidden'} lg:block`}>
           <div className="font-bold text-xl flex items-center justify-between lg:justify-start">
             <img src={logo} className="w-11 h-11" alt="Logo" />
-            Hb
+            NavTok
             <button className="lg:hidden" onClick={toggleSidebar}>
               <XIcon size={24} />
             </button>

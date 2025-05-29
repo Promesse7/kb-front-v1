@@ -13,7 +13,7 @@ const LandingPage = () => {
         <div className="flex justify-between px-4 py-4 items-center rounded-full bg-gray-300">
           <div className="flex items-center">
             <BookOpen className="h-8 w-8 text-teal-600" />
-            <span className="ml-2 text-2xl font-bold text-teal-800">ReadVerse</span>
+            <span className="ml-2 text-2xl font-bold text-teal-800">NavTok</span>
           </div>
           <div className="hidden md:flex space-x-8">
             <a href="#" className="font-semibold text-gray-700 hover:text-teal-600 transition">Home</a>
@@ -144,7 +144,7 @@ const LandingPage = () => {
           {[
             {
               name: "Sarah Johnson",
-              text: "ReadVerse has completely transformed how I read. The personalized recommendations are spot on!"
+              text: "NavTok has completely transformed how I read. The personalized recommendations are spot on!"
             },
             {
               name: "Michael Chen",
@@ -168,7 +168,7 @@ const LandingPage = () => {
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold text-gray-800 mb-6">Ready to start reading?</h2>
           <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-            Join thousands of readers who have already discovered their next favorite book on ReadVerse.
+            Join thousands of readers who have already discovered their next favorite book on NavTok.
           </p>
           <button className="px-8 py-3 bg-teal-600 text-white rounded-md hover:bg-teal-700 transition text-lg" onClick={() => navigate('/auth')}>
             Sign Up for Free
@@ -187,7 +187,7 @@ const LandingPage = () => {
             <div>
               <div className="flex items-center mb-4">
                 <BookOpen className="h-6 w-6 text-teal-400" />
-                <span className="ml-2 text-xl font-bold">ReadVerse</span>
+                <span className="ml-2 text-xl font-bold">NavTok</span>
               </div>
               <p className="text-gray-400">
                 Your personal digital library, available anytime, anywhere.
@@ -227,7 +227,7 @@ const LandingPage = () => {
             </div>
           </div>
           <div className="border-t border-gray-700 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; {new Date().getFullYear()} ReadVerse. All rights reserved.</p>
+            <p>&copy; {new Date().getFullYear()} NavTok. All rights reserved.</p>
           </div>
         </div>
       </footer>
