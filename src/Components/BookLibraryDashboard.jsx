@@ -17,6 +17,7 @@ import avatarDefault from '../Images/user-icon.png';
 import BookUpload from './BookUpload';
 import BookLibrary from './BookLibrary';
 import BookReader from "./BookReader"
+import NovTokHomepage from './BookLibDashboard';
 
 const backendUrl =
   process.env.NODE_ENV === "development"
@@ -83,33 +84,7 @@ const DashBoard = () => {
     checkAuthStatus();
   }, [backendUrl]);
 
-  useEffect(() => {
-    const fetchBooks = async () => {
-  try {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      throw new Error('Authentication token not found. Please log in again.');
-    }
-
-    const response = await axios.get(`${backendUrl}/api/books`, {
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
-
-    // Safely handle the response
-    const booksData = response.data?.books || response.data || [];
-    setBooks(Array.isArray(booksData) ? booksData : []); 
-
-  } catch (error) {
-    console.error('Error fetching books:', error);
-    setBooks([]); // Set to empty array on error
-  }
-};
-
-
-    fetchBooks();
-  }, []);
+ 
 
 
   const toggleSidebar = () => {
@@ -191,22 +166,7 @@ const DashBoard = () => {
 
 
 // Add this function to mark notifications as read
-const markNotificationsAsRead = async () => {
-  try {
-    await axios.put(
-      `${backendUrl}/api/notifications/read`, 
-      {}, 
-      { headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` } }
-    );
-    
-    setNotifications(prev => 
-      prev.map(notification => ({ ...notification, isRead: true }))
-    );
-    setHasUnreadNotifications(false);
-  } catch (error) {
-    console.error('Error marking notifications as read:', error);
-  }
-};
+
 
   if (errorMessage) {
     return <p style={{ color: 'red' }}>{errorMessage}</p>; // Display an error message
@@ -248,89 +208,9 @@ const markNotificationsAsRead = async () => {
     switch (selectedTab) {
       case "discover":
         return (
-          <>
-            {/* Search Bar */}
-            <div className="flex flex-col lg:flex-row gap-4 mb-4">
-              <div className="flex-1 flex flex-col lg:flex-row gap-2">
-                <select className="px-4 py-2 rounded-lg bg-white border border-gray-200">
-                  <option>All Categories</option>
-                </select>
-                <div className="flex-1 relative">
-                  <input
-                    type="text"
-                    placeholder="Find the book you like..."
-                    className="w-full px-4 py-2 rounded-lg bg-white border border-gray-200 capitalise"
-                  />
-                  <Search className="absolute right-3 top-2.5 text-gray-400" size={20} />
-                </div>
-              </div>
-              <button className="px-6 py-2 bg-teal-800 text-white rounded-lg">
-                Search
-              </button>
-            </div>
-
-            {/* Book Recommendations */}
-            <div className="mb-4">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-medium">Book Recommendations</h2>
-                <button className="text-sm text-gray-600">View all</button>
-              </div>
-         {loading ? (
-  <p>Loading...</p>
-) : (
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-    {books && books.length > 0 ? (
-      books.map((book, index) => (
-        <div key={index} className="bg-white p-4 rounded-xl shadow-sm">
-          <img
-            src={book.coverImage}
-            alt={book.title}
-            className="w-full h-40 object-cover rounded-lg mb-4"
-          />
-          <h3 className="font-medium">{book.title}</h3>
-          <p className="text-sm text-gray-600">{book.author}</p>
-
-          <div className="flex justify-around mt-2">
-            <button
-              onClick={() => handleReadBook(book)}
-              className="px-2 py-2 bg-teal-800 text-white rounded hover:bg-teal-900"
-            >
-              Read Book
-            </button>
-
-            {userRole === 'admin' && (
-              <button
-                onClick={() => handleEditBook(book._id)}
-                className="px-2 py-2 bg-yellow-500 text-white rounded hover:bg-yellow-600"
-              >
-                Edit Book
-              </button>
-            )}
-          </div>
-        </div>
-      ))
-    ) : (
-      <p>No books available.</p>
-    )}
-  </div>
-)}
-
-              
-            </div>
-
-            {/* Categories */}
-            <div>
-              <h2 className="text-xl font-medium mb-4">Book Categories</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {categories.map((category, index) => (
-                  <div key={index} className="bg-white p-4 rounded-xl shadow-sm text-center">
-                    <div>{category.icon}</div>
-                    <h3 className="font-medium">{category.name}</h3>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </>
+        <>
+         <NovTokHomepage />
+         </>
         );
 
 
@@ -427,7 +307,7 @@ const markNotificationsAsRead = async () => {
                   onClick={() => setSelectedTab("discover")}>
                   <HomeIcon />
                 </div>
-                Discover
+                Home
               </div>
 
               <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
@@ -496,68 +376,8 @@ const markNotificationsAsRead = async () => {
 
 
         {/* Main Content */}
-        <main className="flex-1 p-4">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="text-2xl font-bold capitalize">{selectedTab}</h1>
-            <Link to="/profile" className="px-4 py-2 bg-teal-800 text-white rounded-lg">
-              <div className="flex items-center gap-4">
-                {avatar ? (
-                  <img src={avatar} alt="User Avatar" className="rounded-full w-10 h-10 object-cover" />
-                ) : (
-                  <div>No Avatar Available</div>
-                )}
-
-                <span className="font-medium">
-                  {user?.name || 'User'}
-                </span>
-                {/* Notification Bell */}
-<div className="relative">
-  <button
-    onClick={() => {
-      setShowNotifications(!showNotifications);
-      if (hasUnreadNotifications) {
-        markNotificationsAsRead();
-      }
-    }}
-    className="p-2 relative"
-  >
-    <BellIcon className="w-6 h-6 text-gray-600" />
-    {hasUnreadNotifications && (
-      <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-    )}
-  </button>
-  
-  {showNotifications && (
-    <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-20 border border-gray-200">
-      <div className="p-3 border-b border-gray-200 font-medium">Notifications</div>
-      <div className="max-h-96 overflow-y-auto">
-        {notifications.length === 0 ? (
-          <div className="p-4 text-center text-gray-500">No notifications</div>
-        ) : (
-          notifications.map((notification, index) => (
-            <div 
-              key={index} 
-              className={`p-3 border-b border-gray-100 ${notification.isRead ? '' : 'bg-blue-50'}`}
-            >
-              <p className="text-sm">{notification.message}</p>
-              <p className="text-xs text-gray-500 mt-1">
-                {new Date(notification.createdAt).toLocaleString()}
-              </p>
-            </div>
-          ))
-        )}
-      </div>
-    </div>
-  )}
-</div>
-              </div>
-            </Link>
-          </div>
-          <div>
-          </div>
-
-
-          {renderContent(selectedTab)}
+        <main className="flex-1 p-4 mb-4 overflow-y-auto">
+         {renderContent(selectedTab)}
 
           {/* Conditionally render BookReader */}
           {selectedBook && (

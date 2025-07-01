@@ -14,6 +14,7 @@ import ReadingHistory from './Components/ReadingHistory';
 import LandingPage from './Components/pages/LandingPage';
 import BookUpload from './Components/BookUpload';
 import BookReader from './Components/BookReader';
+import BookCollection from './Components/BookCollection';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -110,8 +111,7 @@ const App = () => {
             <DashBoard />
           </ProtectedRoute>
         } />
-        
-        <Route path="/profile" element={
+        <Route path="/profile-customization" element={
           <ProtectedRoute>
             <ProfileCustomization />
           </ProtectedRoute>
@@ -152,6 +152,14 @@ const App = () => {
             <BookUpload />
           </ProtectedRoute>
         } />
+
+        <Route path="/all-books" element={
+          <ProtectedRoute>
+            <BookCollection />
+          </ProtectedRoute>
+        } />
+
+
         <Route path="/edit/:bookId" element={
           <ProtectedRoute>
             <BookUpload />
