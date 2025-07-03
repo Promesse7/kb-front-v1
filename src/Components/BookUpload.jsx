@@ -334,7 +334,7 @@ const BookUpload = () => {
 
 
   return (
-    <div className='m-4 rounded-lg overflow-y-auto h-[80vh]'>
+    <div className='m-2 rounded-lg shadow-lg overflow-y-auto h-[94vh]'>
       <Card className="w-full max-w-4xl mx-auto">
         <CardHeader className="flex items-center justify-between gap-2  ">
           <CardTitle className="flex items-center gap-2 justify-between group hover:cursor-pointer">

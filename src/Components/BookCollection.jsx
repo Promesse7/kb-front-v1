@@ -1,8 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Search, Star, BookOpen, Filter, Grid, List, Heart, Share2, Eye, ArrowRight } from 'lucide-react';
+const backendUrl =
+  process.env.NODE_ENV === "development"
+    ? "http://localhost:5000" // Local backend
+    : 'https://kb-library.onrender.com';
 
 const PublicBookShowcase = () => {
   const [books, setBooks] = useState([]);
+    const [loading, setLoading] = useState(true);
   const [filteredBooks, setFilteredBooks] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -103,6 +109,40 @@ const PublicBookShowcase = () => {
     setFilteredBooks(filtered);
   }, [searchTerm, selectedCategory, books]);
 
+
+
+    // Fetch books   
+
+    useEffect(() => {
+      const fetchBooks = async () => {
+        try {
+          setLoading(true);
+          const token = localStorage.getItem('token');
+          if (!token) {
+            throw new Error('Authentication token not found. Please log in again.');
+          }
+  
+          const response = await axios.get(`${backendUrl}/api/books`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+  
+          // Safely handle the response
+          const booksData = response.data?.books || response.data || [];
+          setBooks(Array.isArray(booksData) ? booksData : []); 
+  
+        } catch (error) {
+          console.error('Error fetching books:', error);
+          setBooks([]); // Set to empty array on error
+        }finally{
+          setLoading(false);
+        }
+      };
+  
+      fetchBooks();
+    }, []);
+
   const toggleFavorite = (bookId) => {
     setFavorites(prev =>
       prev.includes(bookId)
@@ -111,14 +151,22 @@ const PublicBookShowcase = () => {
     );
   };
 
-  const renderStars = (rating) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <Star
-        key={i}
-        className={`w-4 h-4 ${i < Math.floor(rating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-      />
-    ));
-  };
+const renderStars = (rating) => {
+  // Fallback in case rating or totalRatings is missing
+  const totalRatings = rating?.totalRatings ?? 0;
+
+  return Array.from({ length: 5 }, (_, i) => (
+    <Star
+      key={i}
+      className={`w-4 h-4 ${
+        i < Math.floor(totalRatings)
+          ? 'fill-yellow-400 text-yellow-400'
+          : 'text-gray-300'
+      }`}
+    />
+  ));
+};
+
 
   const BookCard = ({ book, isLarge = false }) => (
     <div className={`bg-white rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 overflow-hidden group ${isLarge ? 'col-span-2 row-span-2' : ''}`}>
@@ -140,7 +188,7 @@ const PublicBookShowcase = () => {
           </button>
         </div>
         {book.featured && (
-          <div className="absolute top-4 left-4 bg-gradient-to-r from-purple-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
+          <div className="absolute top-4 left-4 bg-gradient-to-r from-green-500 to-pink-500 text-white px-3 py-1 rounded-full text-sm font-medium">
             Featured
           </div>
         )}
@@ -155,8 +203,8 @@ const PublicBookShowcase = () => {
         </div>
         
         <div className="flex items-center gap-2">
-          <div className="flex">{renderStars(book.rating)}</div>
-          <span className="text-sm text-gray-600">{book.rating}</span>
+          <div className="flex">{renderStars(book.rating.totalRatings)}</div>
+          <span className="text-sm text-gray-600">{book.rating.totalRatings}</span>
           <span className="text-sm text-gray-400">({book.reviews} reviews)</span>
         </div>
         
@@ -173,7 +221,7 @@ const PublicBookShowcase = () => {
         <div className="flex gap-3 pt-2">
           <button
             onClick={() => setSelectedBook(book)}
-            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 text-white py-2 px-4 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2"
+            className="flex-1 bg-gradient-to-r from-teal-500 to-green-600 text-white py-2 px-4 rounded-lg hover:from-teal-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2"
           >
             <BookOpen className="w-4 h-4" />
             Read Now
@@ -211,8 +259,8 @@ const PublicBookShowcase = () => {
               <div>
                 <p className="text-lg text-gray-600">by {book.author}</p>
                 <div className="flex items-center gap-2 mt-2">
-                  <div className="flex">{renderStars(book.rating)}</div>
-                  <span className="text-sm text-gray-600">{book.rating}</span>
+                  <div className="flex">{renderStars(book.rating.totalRatings)}</div>
+                  <span className="text-sm text-gray-600">{book.rating.totalRatings}</span>
                   <span className="text-sm text-gray-400">({book.reviews} reviews)</span>
                 </div>
               </div>
@@ -233,7 +281,7 @@ const PublicBookShowcase = () => {
               </div>
               
               <div className="space-y-4">
-                <button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 text-white py-3 px-6 rounded-lg hover:from-blue-600 hover:to-purple-700 transition-all duration-200 flex items-center justify-center gap-2">
+                <button className="w-full bg-gradient-to-r from-teal-500 to-green-600 text-white py-3 px-6 rounded-lg hover:from-teal-600 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2">
                   <BookOpen className="w-5 h-5" />
                   Start Reading
                 </button>
@@ -255,15 +303,44 @@ const PublicBookShowcase = () => {
     </div>
   );
 
+    if (loading) {
+    return (
+      <div className="flex justify-center  items-center min-h-screen bg-gray-100">
+        <div className="relative flex flex-col items-center">
+          {/* Book Container */}
+          <div className="w-40 h-28 bg-white rounded-lg shadow-lg transform perspective-1000">
+            {/* Left Page */}
+            <div className="absolute left-0 w-1/2 h-full bg-gray-50 border-r border-gray-200 rounded-l-lg overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-r from-gray-50 to-gray-100 animate-flip-left"></div>
+            </div>
+            {/* Right Page */}
+            <div className="absolute right-0 w-1/2 h-full bg-gray-50 border-l border-gray-200 rounded-r-lg overflow-hidden">
+              <div className="w-full h-full bg-gradient-to-l from-gray-50 to-gray-100 animate-flip-right"></div>
+            </div>
+            {/* Spine */}
+            <div className="absolute inset-0 flex justify-center">
+              <div className="w-1 h-full bg-teal-600"></div>
+            </div>
+          </div>
+          {/* Loading Text */}
+          <p className="mt-4 text-lg font-semibold text-teal-600 animate-pulse">
+            Opening Your Next Adventure...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+    <div className="min-h-screen bg-gradient-to-br from-teal-50 via-white to-green-50">
       {/* Header */}
       <header className="bg-white shadow-sm sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Knowledge Pool
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-teal-600 to-green-600 bg-clip-text text-transparent">
+                NovTok
               </h1>
             </div>
             
@@ -275,20 +352,20 @@ const PublicBookShowcase = () => {
                   placeholder="Search books, authors..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent w-80"
+                  className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent w-80"
                 />
               </div>
               
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => setViewMode('grid')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-teal-100 text-teal-600' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
                   <Grid className="w-5 h-5" />
                 </button>
                 <button
                   onClick={() => setViewMode('list')}
-                  className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-blue-100 text-blue-600' : 'text-gray-600 hover:bg-gray-100'}`}
+                  className={`p-2 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-teal-100 text-teal-600' : 'text-gray-600 hover:bg-gray-100'}`}
                 >
                   <List className="w-5 h-5" />
                 </button>
@@ -311,7 +388,7 @@ const PublicBookShowcase = () => {
                   onClick={() => setSelectedCategory(category)}
                   className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                     selectedCategory === category
-                      ? 'bg-blue-500 text-white'
+                      ? 'bg-teal-500 text-white'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
@@ -322,23 +399,14 @@ const PublicBookShowcase = () => {
           </div>
         </div>
 
-        {/* Featured Section */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold text-gray-800 mb-6">Featured Books</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredBooks.filter(book => book.featured).slice(0, 4).map((book, index) => (
-              <BookCard key={book.id} book={book} isLarge={index === 0} />
-            ))}
-          </div>
-        </div>
-
+       
         {/* All Books */}
         <div>
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-2xl font-bold text-gray-800">
               All Books ({filteredBooks.length})
             </h2>
-            <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium">
+            <button className="flex items-center gap-2 text-teal-600 hover:text-teal-700 font-medium">
               View All <ArrowRight className="w-4 h-4" />
             </button>
           </div>

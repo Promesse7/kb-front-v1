@@ -15,6 +15,8 @@ import LandingPage from './Components/pages/LandingPage';
 import BookUpload from './Components/BookUpload';
 import BookReader from './Components/BookReader';
 import BookCollection from './Components/BookCollection';
+import NotFound from './Components/NotFound';
+import GamifiedLearningApp from './Components/GameDash';
 
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(null);
@@ -103,15 +105,15 @@ const App = () => {
          {/* Landing Page route */}
          <Route path="/" element={<LandingPage />} />
          <Route path="/auth" element={<AuthSystem />} />
-
-
+         <Route path="*" element={<NotFound />} />
+          <Route path="/game" element={<GamifiedLearningApp />} />
         {/* Protected Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute>
             <DashBoard />
           </ProtectedRoute>
         } />
-        <Route path="/profile-customization" element={
+        <Route path="/profile" element={
           <ProtectedRoute>
             <ProfileCustomization />
           </ProtectedRoute>

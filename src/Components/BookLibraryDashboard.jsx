@@ -290,7 +290,7 @@ const DashBoard = () => {
         <aside className={`w-full lg:w-64 bg-white p-6 space-y-6 ${isSidebarOpen ? 'block' : 'hidden'} lg:block`}>
           <div className="font-bold text-xl flex items-center justify-between lg:justify-start">
             <img src={logo} className="w-11 h-11" alt="Logo" />
-            NavTok
+            NovTok
             <button className="lg:hidden" onClick={toggleSidebar}>
               <XIcon size={24} />
             </button>
@@ -310,36 +310,40 @@ const DashBoard = () => {
                 Home
               </div>
 
-              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800"
+              onClick={() => setSelectedTab("categories")} >
                 <div className={`text-left px-4 py-2 rounded-lg ${selectedTab === "categories" ? "bg-teal-800 text-white" : "hover:bg-gray-200"
                   }`}
-                  onClick={() => setSelectedTab("categories")}>
+                  >
 
                   <BookOpenIcon className='hover:text-coral-800' />
                 </div>
                 Category
               </div>
 
-              <div className="flex items-center gap-3 text-gray-600">
+              <div className="flex items-center gap-3 cursor-pointer text-gray-600"
+               onClick={() => setSelectedTab("library")}>
                 <div className={`text-left px-4 py-2 rounded-lg ${selectedTab === "library" ? "bg-teal-800 text-white" : "hover:bg-gray-200"
                   }`}
-                  onClick={() => setSelectedTab("library")}>
+                 >
                   <LibraryIcon />
                 </div>
                 My Library
               </div>
 
-              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800"
+              onClick={() => setSelectedTab("upload")}>
                 <div className={`text-left px-4 py-2 rounded-lg ${selectedTab === "upload" ? "bg-teal-800 text-white" : "hover:bg-gray-200"
                   }`}
-                  onClick={() => setSelectedTab("upload")}>
+                  >
 
                   <UploadCloudIcon />
                 </div>
                 Upload
               </div>
 
-              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800">
+              <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800"
+              onClick={() => setSelectedTab("favorite")}>
                 <div className={`text-left px-4 py-2 rounded-lg ${selectedTab === "favorite" ? "bg-teal-800 text-white" : "hover:bg-gray-200"
                   }`}
                   onClick={() => setSelectedTab("favorite")}>
@@ -365,7 +369,7 @@ const DashBoard = () => {
               Help
             </div>
 
-            <div className="flex items-center gap-3 text-gray-600 cursor-pointer hover:text-coral-800" onClick={handleLogout}>
+            <div className="flex items-center gap-3 rounded-lg text-gray-600 cursor-pointer hover:text-red-500 hover:bg-red-100" onClick={handleLogout}>
               <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center" >
                 <LogOutIcon />
               </div>

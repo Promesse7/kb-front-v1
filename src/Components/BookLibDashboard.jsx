@@ -11,7 +11,6 @@ const backendUrl =
     : 'https://kb-library.onrender.com';
 
 const NovTokHomepage = () => {
-  const [activeTab, setActiveTab] = useState('home');
   const [user, setUser] = useState(null);  
   const [books, setBooks] = useState([]);
   const navigate = useNavigate();
@@ -27,7 +26,7 @@ const NovTokHomepage = () => {
   const [notifications, setNotifications] = useState([]);
   const [selectedBook, setSelectedBook] = useState(null);
   const [bookToConfirm, setBookToConfirm] = useState(null);
-
+  const [query, setQuery] = useState('');
   const trendingStories = [
     {
       id: 5,
@@ -54,7 +53,8 @@ const NovTokHomepage = () => {
       trend: "+28%"
     }
   ];
-
+  
+  
   const genres = [
     'Fiction', 'Non-Fiction', 'Science', 'Technology',  'Biography',
       'Romance', 'Business', 'Self-Help', 'History',
@@ -112,6 +112,7 @@ const NovTokHomepage = () => {
   useEffect(() => {
     const fetchBooks = async () => {
       try {
+        setLoading(true);
         const token = localStorage.getItem('token');
         if (!token) {
           throw new Error('Authentication token not found. Please log in again.');
@@ -130,6 +131,8 @@ const NovTokHomepage = () => {
       } catch (error) {
         console.error('Error fetching books:', error);
         setBooks([]); // Set to empty array on error
+      }finally{
+        setLoading(false);
       }
     };
 
@@ -194,6 +197,14 @@ const NovTokHomepage = () => {
   const handleCloseReader = () => {
     setSelectedBook(null);
   };
+
+    const handleSearch = (e) => {
+    e.preventDefault();
+    if (!query.trim()) return;
+    navigate(`/book-library?search=${encodeURIComponent(query.trim())}`);
+  };
+
+
   return (
     <div className="max-h-[96vh] bg-white rounded-lg shadow-lg overflow-y-auto mb-8">
       {/* Header */}
@@ -209,18 +220,24 @@ const NovTokHomepage = () => {
 
             {/* Search Bar */}
             <div className="flex-1 max-w-lg mx-8">
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Search className="h-5 w-5 text-gray-400" />
-                </div>
-                <input
-                  type="text"
-                  placeholder="Search stories, authors, genres..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-teal-900 focus:border-transparent"
-                />
-              </div>
+             <form onSubmit={handleSearch}>
+  <div className="relative">
+    <div
+      onClick={handleSearch} // search on icon click
+      className="absolute inset-y-0 left-0 pl-3 flex items-center cursor-pointer hover:text-teal-900"
+    >
+      <Search className="h-5 w-5 text-gray-400" />
+    </div>
+    <input
+      type="text"
+      placeholder="Search stories, authors, genres..."
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-teal-900 focus:border-transparent"
+    />
+  </div>
+</form>
+
             </div>
 
             {/* Navigation */}
@@ -230,7 +247,9 @@ const NovTokHomepage = () => {
               </button>
               <div className="flex justify-between items-center ">
             
-                <Link to="/profile" className="px-2 py-1 bg-teal-800 text-white rounded-lg">
+                <div className="px-2 py-1 bg-teal-800 text-white rounded-lg cursor-pointer hover:bg-teal-900 transition-colors"
+                 onClick={ () => navigate('/profile') }
+                 >
                   <div className="flex items-center gap-2">
                     {avatar ? (
                       <img src={avatar} alt="User Avatar" className="rounded-full w-10 h-10 object-cover" />
@@ -282,7 +301,7 @@ const NovTokHomepage = () => {
                       )}
                     </div>
                   </div>
-                </Link>
+                </div>
               </div>
             </div>
           </div>
@@ -311,9 +330,7 @@ const NovTokHomepage = () => {
               </div>
             </div>
           </div>
-        </section>
-
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mt-8">
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             {/* Featured Stories */}
@@ -328,7 +345,15 @@ const NovTokHomepage = () => {
               </div>
             <div className="overflow-x-hidden">
   <div className="flex space-x-4 min-w-max mb-1">
-    {books && books.length > 0 ? (
+    {loading ? (
+  <div className="w-full flex justify-center items-center py-10">
+    <svg className="animate-spin h-8 w-8 text-teal-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+    </svg>
+  </div>
+) : books && books.length > 0 ? (
+
       books.map((book, index) => (
         <div
           key={book._id || index}
@@ -438,8 +463,124 @@ const NovTokHomepage = () => {
                 ))}
               </div>
             </section>
-          </div>
 
+            {/* Popular Stories */}
+            <section className="mb-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-bold text-gray-900">Popular Stories</h3>
+                <button className="text-teal-900 hover:text-teal-700 font-medium"
+                    onClick={() => navigate('/all-books')}
+                >
+                  View All
+                </button>
+              </div>
+            <div className="overflow-x-hidden">
+  <div className="flex space-x-4 min-w-max mb-1">
+    {loading ? (
+  <div className="w-full flex justify-center items-center py-10">
+    <svg className="animate-spin h-8 w-8 text-teal-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+    </svg>
+  </div>
+) : books && books.length > 0 ? (
+
+      books.map((book, index) => (
+        <div
+          key={book._id || index}
+          className="w-[12.5vw] flex-shrink-0 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+        >
+          <div className="relative">
+            <img
+              src={book.coverImage || 'https://via.placeholder.com/300x400?text=No+Cover'}
+              alt={book.title}
+              className="w-full h-48 object-fit-cover rounded-t-lg"
+              onClick={() => handleReadBook(book)}
+            />
+            <div className="absolute top-2 right-2">
+              <span className="bg-teal-900 text-white px-2 py-1 rounded text-xs">
+                {book.category || book.genre || 'Unknown'}
+              </span>
+            </div>
+            {book.isCompleted && (
+              <div className="absolute top-2 left-2">
+                <span className="bg-green-500 text-white px-2 py-1 rounded text-xs">
+                  Complete
+                </span>
+              </div>
+            )}
+          </div>
+          <div className="p-4">
+            <h4 className="font-bold text-gray-900 mb-1 truncate">{book.title}</h4>
+            <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
+            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{book.description}</p>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center space-x-3">
+                <span className="flex items-center">
+                  <Eye className="h-3 w-3 mr-1" />
+                  {book.downloads || 0}
+                </span>
+                <span className="flex items-center">
+                  <Heart className="h-3 w-3 mr-1" />
+                  {book.likes?.length || 0}
+                </span>
+              </div>
+              <span>{Array.isArray(book.chapters) ? book.chapters.length : 0} Chapters</span>
+            </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p>No books available.</p>
+    )}
+
+       {/* Conditionally render BookReader */}
+          {selectedBook && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 flex justify-center items-center">
+              <div className="relative w-full h-full">
+                <button
+                  onClick={handleCloseReader}
+                  className="absolute top-4 right-4 px-4 py-2 bg-red-700 text-white z-50 rounded hover:bg-red-800 z-60"
+                >
+                  Close
+                </button>
+                <BookReader book={selectedBook} />
+              </div>
+            </div>
+          )}
+
+          {/* Confirmation Popup */}
+          {bookToConfirm && (
+            <div className="fixed inset-0 bg-gray-800 bg-opacity-50 z-50 flex justify-center items-center">
+              <div className="bg-white p-6 rounded-lg shadow-lg max-w-sm w-full">
+                <h3 className="text-lg font-semibold mb-4">Confirm Reading</h3>
+                <p className="mb-6">
+                  Do you want to read <span className="font-medium">"{bookToConfirm.title}"</span> by{" "}
+                  <span className="font-medium">{bookToConfirm.author}</span>?
+                </p>
+                <div className="flex justify-end gap-4">
+                  <button
+                    onClick={cancelReading}
+                    className="px-4 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={confirmReading}
+                    className="px-4 py-2 bg-teal-800 text-white rounded hover:bg-teal-900"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+  </div>
+</div>
+
+            </section>
+          </div>
+ 
           {/* Sidebar */}
           <div className="lg:col-span-1">
             {/* Trending Now */}
@@ -449,7 +590,7 @@ const NovTokHomepage = () => {
                 Trending Now
               </h3>
               <div className="bg-gray-50 rounded-lg p-4">
-                {trendingStories.map((book, index) => (
+                {books.map((book, index) => (
                   <div key={book.id} className="flex items-center space-x-3 mb-4 last:mb-0">
                     <div className="flex-shrink-0 w-8 h-8 bg-teal-900 text-white rounded-full flex items-center justify-center text-sm font-bold">
                       {index + 1}
@@ -476,15 +617,15 @@ const NovTokHomepage = () => {
               </h3>
               <div className="bg-gray-50 rounded-lg p-4 space-y-4">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-teal-900">2.5M+</div>
+                  <div className="text-2xl font-bold text-teal-900">25+</div>
                   <div className="text-sm text-gray-600">Active Writers</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-teal-900">15M+</div>
+                  <div className="text-2xl font-bold text-teal-900">150+</div>
                   <div className="text-sm text-gray-600">Stories Published</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-teal-900">50M+</div>
+                  <div className="text-2xl font-bold text-teal-900">5k+</div>
                   <div className="text-sm text-gray-600">Monthly Readers</div>
                 </div>
               </div>
@@ -510,10 +651,13 @@ const NovTokHomepage = () => {
             </section>
           </div>
         </div>
+        </section>
+
+        
       </main>
 
       {/* Footer */}
-      <footer className="bg-gray-50 border-t border-gray-200 mt-16">
+      <footer className="bg-gray-50 border-t border-gray-200 mt-2">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>

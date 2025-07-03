@@ -43,6 +43,7 @@ const BookReader = ({ book }) => {
   const [errorMessage, setErrorMessage] = useState(null);
   const [selectedBook, setSelectedBook] = useState(null);
   const [bookToConfirm, setBookToConfirm] = useState(null);
+ const [hasAccess, setHasAccess] = useState(false);
 
   // Sample book data for demonstration
   const bookData = book || {
@@ -151,6 +152,26 @@ const BookReader = ({ book }) => {
     fetchUserData();
   }, [navigate]);
 
+
+  // checking if the user payed for the book
+
+  useEffect(() => {
+    async function checkAccess() {
+      const res = await fetch(`/api/books/${bookId}/access`);
+      const data = await res.json();
+      setHasAccess(data.hasAccess);
+      setLoading(false);
+    }
+    checkAccess();
+  }, [bookId]);
+
+  if (loading) return <p>Loading...</p>;
+
+  if (!hasAccess) {
+    return <p>You need to purchase this book to read it.</p>;
+  }
+
+  
   // Function to cancel reading
   const cancelReading = () => {
     setBookToConfirm(null); // Close the popup without selecting
