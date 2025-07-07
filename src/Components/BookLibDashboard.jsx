@@ -241,69 +241,80 @@ const NovTokHomepage = () => {
             </div>
 
             {/* Navigation */}
-            <div className="flex items-center space-x-4">
-              <button className="text-gray-600 hover:text-teal-900 transition-colors">
-                <Bell className="h-6 w-6" />
-              </button>
-              <div className="flex justify-between items-center ">
-            
-                <div className="px-2 py-1 bg-teal-800 text-white rounded-lg cursor-pointer hover:bg-teal-900 transition-colors"
-                 onClick={ () => navigate('/profile') }
-                 >
-                  <div className="flex items-center gap-2">
-                    {avatar ? (
-                      <img src={avatar} alt="User Avatar" className="rounded-full w-10 h-10 object-cover" />
-                    ) : (
-                      <div>No Avatar Available</div>
-                    )}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-4 sm:space-y-0">
+  {/* Notification Bell */}
+  <button className="text-gray-600 hover:text-teal-900 transition-colors self-end sm:self-auto">
+    <Bell className="h-6 w-6" />
+  </button>
 
-                    <span className="font-medium">
-                      {user?.name || 'User'}
-                    </span>
-                    {/* Notification Bell */}
-                    <div className="relative">
-                      <button
-                        onClick={() => {
-                          setShowNotifications(!showNotifications);
-                          if (hasUnreadNotifications) {
-                            markNotificationsAsRead();
-                          }
-                        }}
-                        className="p-2 relative"
-                      >
-                        <BellIcon className="w-6 h-6 text-gray-600" />
-                        {hasUnreadNotifications && (
-                          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-                        )}
-                      </button>
-                      
-                      {showNotifications && (
-                        <div className="absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-lg z-20 border border-gray-200">
-                          <div className="p-3 border-b border-gray-200 font-medium">Notifications</div>
-                          <div className="max-h-96 overflow-y-auto">
-                            {notifications.length === 0 ? (
-                              <div className="p-4 text-center text-gray-500">No notifications</div>
-                            ) : (
-                              notifications.map((notification, index) => (
-                                <div 
-                                  key={index} 
-                                  className={`p-3 border-b border-gray-100 ${notification.isRead ? '' : 'bg-blue-50'}`}
-                                >
-                                  <p className="text-sm">{notification.message}</p>
-                                  <p className="text-xs text-gray-500 mt-1">
-                                    {new Date(notification.createdAt).toLocaleString()}
-                                  </p>
-                                </div>
-                              ))
-                            )}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+  {/* User Profile & Notifications */}
+  <div className="flex flex-col sm:flex-row justify-between items-center gap-2 w-full sm:w-auto">
+    <div
+      className="px-3 py-2 bg-teal-800 text-white rounded-lg cursor-pointer hover:bg-teal-900 transition-colors w-full sm:w-auto"
+      onClick={() => navigate('/profile')}
+    >
+      <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+        {avatar ? (
+          <img
+            src={avatar}
+            alt="User Avatar"
+            className="rounded-full w-10 h-10 object-cover"
+          />
+        ) : (
+          <div className="text-sm text-gray-200">No Avatar</div>
+        )}
+
+        <span className="font-medium text-sm sm:text-base">
+          {user?.name || 'User'}
+        </span>
+      </div>
+    </div>
+
+    {/* Notification Dropdown */}
+    <div className="relative w-full sm:w-auto">
+      <button
+        onClick={() => {
+          setShowNotifications(!showNotifications);
+          if (hasUnreadNotifications) {
+            markNotificationsAsRead();
+          }
+        }}
+        className="p-2 relative"
+      >
+        <BellIcon className="w-6 h-6 text-gray-600" />
+        {hasUnreadNotifications && (
+          <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+        )}
+      </button>
+
+      {showNotifications && (
+        <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg z-20 border border-gray-200 max-h-[60vh] overflow-y-auto">
+          <div className="p-3 border-b border-gray-200 font-medium">Notifications</div>
+          <div className="">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-500">No notifications</div>
+            ) : (
+              notifications.map((notification, index) => (
+                <div
+                  key={index}
+                  className={`p-3 border-b border-gray-100 ${
+                    notification.isRead ? '' : 'bg-blue-50'
+                  }`}
+                >
+                  <p className="text-sm">{notification.message}</p>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {new Date(notification.createdAt).toLocaleString()}
+                  </p>
                 </div>
-              </div>
-            </div>
+              ))
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</div>
+
           </div>
         </div>
       </header>
@@ -343,27 +354,26 @@ const NovTokHomepage = () => {
                   View All
                 </button>
               </div>
-            <div className="overflow-x-hidden">
-  <div className="flex space-x-4 min-w-max mb-1">
+      <div className="overflow-x-auto">
+  <div className="flex space-x-4 min-w-max mb-1 px-2 sm:px-4">
     {loading ? (
-  <div className="w-full flex justify-center items-center py-10">
-    <svg className="animate-spin h-8 w-8 text-teal-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-    </svg>
-  </div>
-) : books && books.length > 0 ? (
-
+      <div className="w-full flex justify-center items-center py-10">
+        <svg className="animate-spin h-8 w-8 text-teal-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+        </svg>
+      </div>
+    ) : books && books.length > 0 ? (
       books.map((book, index) => (
         <div
           key={book._id || index}
-          className="w-[12.5vw] flex-shrink-0 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
+          className="w-[65vw] sm:w-[40vw] md:w-[25vw] lg:w-[18vw] flex-shrink-0 bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer overflow-hidden"
         >
           <div className="relative">
             <img
               src={book.coverImage || 'https://via.placeholder.com/300x400?text=No+Cover'}
               alt={book.title}
-              className="w-full h-48 object-fit-cover rounded-t-lg"
+              className="w-full h-44 sm:h-48 object-cover rounded-t-lg"
               onClick={() => handleReadBook(book)}
             />
             <div className="absolute top-2 right-2">
@@ -379,29 +389,10 @@ const NovTokHomepage = () => {
               </div>
             )}
           </div>
-          <div className="p-4">
+          <div className="p-3 sm:p-4">
             <h4 className="font-bold text-gray-900 mb-1 truncate">{book.title}</h4>
-            <p className="text-sm text-gray-600 mb-2">by {book.author}</p>
-            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{book.description}</p>
-            <div className="flex items-center justify-between text-xs text-gray-500">
-              <div className="flex items-center space-x-3">
-                <span className="flex items-center">
-                  <Eye className="h-3 w-3 mr-1" />
-                  {book.downloads || 0}
-                </span>
-                <span className="flex items-center">
-                  <Heart className="h-3 w-3 mr-1" />
-                  {book.likes?.length || 0}
-                </span>
-              </div>
-              <span>{Array.isArray(book.chapters) ? book.chapters.length : 0} Chapters</span>
-            </div>
-          </div>
-        </div>
-      ))
-    ) : (
-      <p>No books available.</p>
-    )}
+            <p className=
+
 
        {/* Conditionally render BookReader */}
           {selectedBook && (
