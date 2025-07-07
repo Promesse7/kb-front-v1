@@ -4,6 +4,57 @@ import PersonReading from '../../Images/Person-reading.jpg'
 import { useNavigate } from 'react-router-dom';
 
 const LandingPage = () => {
+
+   const featuredStories = [
+    {
+      id: 1,
+      title: "Midnight Chronicles",
+      author: "SarahWriter",
+      cover: "https://images.unsplash.com/photo-1481627834876-b7833e8f5570?w=300&h=400&fit=crop",
+      genre: "Fantasy",
+      reads: "2.1M",
+      votes: "156K",
+      chapters: 45,
+      isCompleted: false,
+      description: "A young mage discovers her true powers in a world where magic is forbidden..."
+    },
+    {
+      id: 2,
+      title: "Coffee Shop Tales",
+      author: "UrbanPoet",
+      cover: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=300&h=400&fit=crop",
+      genre: "Romance",
+      reads: "1.8M",
+      votes: "203K",
+      chapters: 32,
+      isCompleted: true,
+      description: "Love brews in the most unexpected places when two baristas clash over the perfect latte..."
+    },
+    {
+      id: 3,
+      title: "Digital Dreams",
+      author: "TechSage",
+      cover: "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=300&h=400&fit=crop",
+      genre: "Sci-Fi",
+      reads: "987K",
+      votes: "89K",
+      chapters: 28,
+      isCompleted: false,
+      description: "In 2045, reality and virtual worlds collide as hackers fight for digital freedom..."
+    },
+    {
+      id: 4,
+      title: "The Last Garden",
+      author: "NatureLover",
+      cover: "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=300&h=400&fit=crop",
+      genre: "Drama",
+      reads: "1.2M",
+      votes: "134K",
+      chapters: 38,
+      isCompleted: true,
+      description: "A family secret hidden in an abandoned garden changes everything for three generations..."
+    }
+  ];
   const navigate = useNavigate();
   return (
     <>
@@ -13,7 +64,7 @@ const LandingPage = () => {
         <div className="flex justify-between px-4 py-4 items-center rounded-full bg-gray-300">
           <div className="flex items-center">
             <BookOpen className="h-8 w-8 text-teal-600" />
-            <span className="ml-2 text-2xl font-bold text-teal-800">NavTok</span>
+            <span className="ml-2 text-2xl font-bold text-teal-800">NovTok</span>
           </div>
           <div className="hidden md:flex space-x-8">
             <a href="#" className="font-semibold text-gray-700 hover:text-teal-600 transition">Home</a>
@@ -101,16 +152,16 @@ const LandingPage = () => {
           </a>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {[1, 2, 3, 4].map((book) => (
-            <div key={book} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
+          {featuredStories.map((book) => (
+            <div key={book.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-xl transition">
               <img
-                src={`/api/placeholder/240/320`}
-                alt={`Book cover ${book}`}
+                src={book.cover}
+                alt={`Book cover ${book.title}`}
                 className="w-full h-64 object-cover"
               />
               <div className="p-4">
-                <h3 className="font-bold text-gray-800 mb-1">Book Title {book}</h3>
-                <p className="text-sm text-gray-600 mb-2">Author Name</p>
+                <h3 className="font-bold text-gray-800 mb-1">Book Title {book.title}</h3>
+                <p className="text-sm text-gray-600 mb-2">{book.author}</p>
                 <div className="flex items-center text-yellow-400 text-sm">
                   {'★'.repeat(5)} <span className="ml-1 text-gray-600">(4.8)</span>
                 </div>
