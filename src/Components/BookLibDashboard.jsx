@@ -354,7 +354,7 @@ const NovTokHomepage = () => {
                   View All
                 </button>
               </div>
-      <div className="overflow-x-auto">
+   <div className="overflow-x-auto">
   <div className="flex space-x-4 min-w-max mb-1 px-2 sm:px-4">
     {loading ? (
       <div className="w-full flex justify-center items-center py-10">
@@ -391,9 +391,28 @@ const NovTokHomepage = () => {
           </div>
           <div className="p-3 sm:p-4">
             <h4 className="font-bold text-gray-900 mb-1 truncate">{book.title}</h4>
-            <p className=
-
-
+            <p className="text-sm text-gray-600 mb-1">by {book.author}</p>
+            <p className="text-xs text-gray-500 mb-3 line-clamp-2">{book.description}</p>
+            <div className="flex items-center justify-between text-xs text-gray-500">
+              <div className="flex items-center space-x-3">
+                <span className="flex items-center">
+                  <Eye className="h-4 w-4 mr-1" />
+                  {book.downloads || 0}
+                </span>
+                <span className="flex items-center">
+                  <Heart className="h-4 w-4 mr-1" />
+                  {book.likes?.length || 0}
+                </span>
+              </div>
+              <span>{Array.isArray(book.chapters) ? book.chapters.length : 0} Chapters</span>
+            </div>
+          </div>
+        </div>
+      ))
+    ) : (
+      <p className="text-gray-500 text-sm px-4">No books available.</p>
+    )}
+ 
        {/* Conditionally render BookReader */}
           {selectedBook && (
             <div className="fixed inset-0 bg-gray-800 bg-opacity-75 z-50 flex justify-center items-center">
